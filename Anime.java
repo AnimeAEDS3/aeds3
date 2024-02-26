@@ -1,5 +1,6 @@
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 
 public class Anime{
@@ -7,10 +8,11 @@ public class Anime{
     /* Attributes */
 
     protected String title;
-    protected String type;
+    protected int id;
     protected int episodes;
     protected String status;
-    protected Date startAiring;
+    protected long startAiring;
+    protected long endAiring;
     protected String startingSeason;
     protected String broadcastTime;
     protected String[] producers;
@@ -25,16 +27,17 @@ public class Anime{
     protected int numOfMembers;
     protected int numOfFavorites;
     protected String description;
+    protected String type;
 
 
     /* Constructor */
 
     public Anime() {
         this.title = "-";
-        this.type = "-";
+        this.id = 
         this.episodes = -1;
         this.status = "-";
-        this.startAiring = new Date(0);
+         this.startAiring = 0;
         this.startingSeason = "-";
         this.broadcastTime = "-";
         this.producers = new String[0];
@@ -49,6 +52,177 @@ public class Anime{
         this.numOfMembers = 0;
         this.numOfFavorites = 0;
         this.description = "-";
+        this.type = "-";
+    }
+
+    /* Getters and setters */
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getEpisodes() {
+        return episodes;
+    }
+
+    public void setEpisodes(int episodes) {
+        this.episodes = episodes;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public long getStartAiring() {
+        return startAiring;
+    }
+
+    public void setStartAiring(long startAiring) {
+        this.startAiring = startAiring;
+    }
+
+    public long getEndAiring() {
+        return endAiring;
+    }
+
+    public void setEndAiring(long endAiring) {
+        this.endAiring = endAiring;
+    }
+
+    public String getStartingSeason() {
+        return startingSeason;
+    }
+
+    public void setStartingSeason(String startingSeason) {
+        this.startingSeason = startingSeason;
+    }
+
+    public String getBroadcastTime() {
+        return broadcastTime;
+    }
+
+    public void setBroadcastTime(String broadcastTime) {
+        this.broadcastTime = broadcastTime;
+    }
+
+    public String[] getProducers() {
+        return producers;
+    }
+
+    public void setProducers(String[] producers) {
+        this.producers = producers;
+    }
+
+    public String[] getLicensors() {
+        return licensors;
+    }
+
+    public void setLicensors(String[] licensors) {
+        this.licensors = licensors;
+    }
+
+    public String[] getStudios() {
+        return studios;
+    }
+
+    public void setStudios(String[] studios) {
+        this.studios = studios;
+    }
+
+    public String getSources() {
+        return sources;
+    }
+
+    public void setSources(String sources) {
+        this.sources = sources;
+    }
+
+    public String[] getGenres() {
+        return genres;
+    }
+
+    public void setGenres(String[] genres) {
+        this.genres = genres;
+    }
+
+    public String getDuration() {
+        return duration;
+    }
+
+    public void setDuration(String duration) {
+        this.duration = duration;
+    }
+
+    public String getRating() {
+        return rating;
+    }
+
+    public void setRating(String rating) {
+        this.rating = rating;
+    }
+
+    public float getScore() {
+        return score;
+    }
+
+    public void setScore(float score) {
+        this.score = score;
+    }
+
+    public int getScoredBy() {
+        return scoredBy;
+    }
+
+    public void setScoredBy(int scoredBy) {
+        this.scoredBy = scoredBy;
+    }
+
+    public int getNumOfMembers() {
+        return numOfMembers;
+    }
+
+    public void setNumOfMembers(int numOfMembers) {
+        this.numOfMembers = numOfMembers;
+    }
+
+    public int getNumOfFavorites() {
+        return numOfFavorites;
+    }
+
+    public void setNumOfFavorites(int numOfFavorites) {
+        this.numOfFavorites = numOfFavorites;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     /* Date conversions */
@@ -80,5 +254,32 @@ public class Anime{
             return null;
         }
     }
-    
+
+    /* To string */
+
+    @Override
+    public String toString() {
+        return "Anime{" +
+                "title='" + title + '\'' +
+                ", id=" + id +
+                ", episodes=" + episodes +
+                ", status='" + status + '\'' +
+                ", startAiring=" + startAiring +
+                ", startingSeason='" + startingSeason + '\'' +
+                ", broadcastTime='" + broadcastTime + '\'' +
+                ", producers=" + Arrays.toString(producers) +
+                ", licensors=" + Arrays.toString(licensors) +
+                ", studios=" + Arrays.toString(studios) +
+                ", sources='" + sources + '\'' +
+                ", genres=" + Arrays.toString(genres) +
+                ", duration='" + duration + '\'' +
+                ", rating='" + rating + '\'' +
+                ", score=" + score +
+                ", scoredBy=" + scoredBy +
+                ", numOfMembers=" + numOfMembers +
+                ", numOfFavorites=" + numOfFavorites +
+                ", description='" + description + '\'' +
+                ", type='" + type + '\'' +
+                '}';
+    }
 }
