@@ -1,3 +1,9 @@
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.RandomAccessFile;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -253,6 +259,41 @@ public class Anime{
             e.printStackTrace();
             return null;
         }
+    }
+
+    /* CRUD */
+
+    private static void writeAnime(RandomAccessFile file, Anime anime, int recordNumber) throws IOException {
+        file.seek(recordNumber * 1024);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeObject(anime);
+        byte[] bytes = baos.toByteArray();
+        file.write(bytes);
+    }
+
+    private static Anime readAnime(RandomAccessFile file, int recordNumber) throws IOException {
+        file.seek(recordNumber * 1024);
+        byte[] bytes = new byte[1024];
+        file.read(bytes);
+        ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+        ObjectInputStream ois = new ObjectInputStream(bais);
+        try {
+            return (Anime) ois.readObject();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private static void updateAnime(RandomAccessFile file, Anime anime, int recordNumber) throws IOException {
+        writeAnime(file, anime, recordNumber);
+    }
+
+    private static void deleteAnime(RandomAccessFile file, int recordNumber) throws IOException {
+        file.seek(recordNumber * 1024);
+        byte[] bytes = new byte[1024];
+        file.write(bytes);
     }
 
     /* To string */
