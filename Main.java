@@ -1,16 +1,15 @@
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import java.io.*;
+import java.util.*;
 
 class Main {
 
-    public static void main(String data[]) throws FileNotFoundException {
+    public static void main(String data[]) {
 
         FileOutputStream fos;
         DataOutputStream dos;
+        FileInputStream fis;
+        DataInputStream dis;
+        Scanner scanner = new Scanner(System.in);
 
         try {
             // Opening original data
@@ -62,11 +61,48 @@ class Main {
                 anime.setDescription(values[19]);
                 anime.setType(values[20]);
 
+                byte[] ba;
+                ba = anime.toByteArray();
+                dos.writeInt(ba.length);
+                dos.write(ba);
                 System.out.println(anime.toString());
-                dos.writeUTF(anime.getTitle());
+            }
+            raf.close();
+            
+            // Fechar o fluxo de saída após terminar de escrever
+            dos.close();
+            fos.close();
+
+            // Começar read para achar id
+            int idBuscado = scanner.nextInt(); //id que o usuário deseja procurar
+            
+            fis = new FileInputStream("anime.db");
+            dis = new DataInputStream(fis);
+            int recordSize;
+            boolean found = false;
+
+            while (dis.available() > 0) {
+                recordSize = dis.readInt();
+                byte[] recordData = new byte[recordSize];
+                dis.readFully(recordData);
+
+                Anime anime = new Anime();
+                anime.fromByteArray(recordData);
+
+                if (anime.getId() == idBuscado) {
+                    System.out.println(anime.toString());
+                    found = true;
+                    break;
+                }
             }
 
-            raf.close();
+            if (!found) {
+                System.out.println("Anime com ID " + idBuscado + " não encontrado.");
+            }
+
+            // fechar os fluxos
+            fis.close();
+            dis.close();
 
         } catch (FileNotFoundException e) {
             System.err.println("File not found: " + e.getMessage());

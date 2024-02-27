@@ -1,9 +1,4 @@
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -294,6 +289,79 @@ public class Anime{
         file.seek(recordNumber * 1024);
         byte[] bytes = new byte[1024];
         file.write(bytes);
+    }
+
+    /* To bytes */
+    public byte[] toByteArray() throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(baos);
+        dos.writeInt(id);
+        dos.writeUTF(title);
+        dos.writeInt(episodes);
+        dos.writeUTF(status);
+        dos.writeLong(startAiring);
+        dos.writeLong(endAiring);
+        dos.writeUTF(startingSeason);
+        dos.writeUTF(broadcastTime);
+        writeStringArray(dos, producers);
+        writeStringArray(dos, licensors);
+        writeStringArray(dos, studios);
+        dos.writeUTF(sources);
+        writeStringArray(dos, genres);
+        dos.writeUTF(duration);
+        dos.writeUTF(rating);
+        dos.writeFloat(score);
+        dos.writeInt(scoredBy);
+        dos.writeInt(numOfMembers);
+        dos.writeInt(numOfFavorites);
+        dos.writeUTF(description);
+        dos.writeUTF(type);
+
+        return baos.toByteArray();
+    }
+
+     private static void writeStringArray(DataOutputStream dos, String[] array) throws IOException {
+        // Escreve o tamanho do array
+        dos.writeInt(array.length);
+        // Escreve cada elemento do array
+        for (String element : array) {
+            dos.writeUTF(element);
+        }
+    }
+
+    public void fromByteArray(byte[] ba) throws IOException {
+        ByteArrayInputStream bais = new ByteArrayInputStream(ba);
+        DataInputStream dis = new DataInputStream(bais);
+        id = dis.readInt();
+        title = dis.readUTF();
+        episodes = dis.readInt();
+        status = dis.readUTF();
+        startAiring = dis.readLong();
+        endAiring = dis.readLong();
+        startingSeason = dis.readUTF();
+        broadcastTime = dis.readUTF();
+        producers = readStringArray(dis);
+        licensors = readStringArray(dis);
+        studios = readStringArray(dis);
+        sources = dis.readUTF();
+        genres = readStringArray(dis);
+        duration = dis.readUTF();
+        rating = dis.readUTF();
+        score = dis.readFloat();
+        scoredBy = dis.readInt();
+        numOfMembers = dis.readInt();
+        numOfFavorites = dis.readInt();
+        description = dis.readUTF();
+        type = dis.readUTF();
+    }
+
+    private String[] readStringArray(DataInputStream dis) throws IOException {
+        int length = dis.readInt();
+        String[] array = new String[length];
+        for (int i = 0; i < length; i++) {
+            array[i] = dis.readUTF();
+        }
+        return array;
     }
 
     /* To string */
