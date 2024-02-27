@@ -1,14 +1,25 @@
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 
 class Main {
 
-    public static void main(String data[]) {
+    public static void main(String data[]) throws FileNotFoundException {
+
+        FileOutputStream fos;
+        DataOutputStream dos;
+
         try {
+            // Opening original data
             File file = new File("dataanime.tsv");
             RandomAccessFile raf = new RandomAccessFile(file, "r");
+
+            // Preparing input path
+            fos = new FileOutputStream("anime.db");
+            dos = new DataOutputStream(fos);
 
             // Skip header
             String header = raf.readLine();
@@ -52,6 +63,7 @@ class Main {
                 anime.setType(values[20]);
 
                 System.out.println(anime.toString());
+                dos.writeUTF(anime.getTitle());
             }
 
             raf.close();
