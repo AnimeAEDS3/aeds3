@@ -3,7 +3,7 @@ import java.util.*;
 
 class Main {
 
-    public static void main(String data[]) {
+    public static void main(String data[]) throws FileNotFoundException{
 
         FileOutputStream fos;
         DataOutputStream dos;
@@ -75,7 +75,7 @@ class Main {
 
             // Começar read para achar id
             int idBuscado = scanner.nextInt(); //id que o usuário deseja procurar
-            
+
             fis = new FileInputStream("anime.db");
             dis = new DataInputStream(fis);
             int recordSize;
