@@ -72,8 +72,9 @@ class Main {
                         anime.setType(values[20]);
 
                         byte[] ba;
-                        ba = anime.toByteArray();
-                        dos.writeInt(ba.length);
+                        ba = anime.toByteArray(); // objeto convertido em array de bytes
+                        dos.writeBoolean(true); // escrevendo a lápide antes do indicador de tamanho
+                        dos.writeInt(ba.length); // indicador de tamanho
                         dos.write(ba);
                         System.out.println(anime.toString());
                     }
@@ -83,7 +84,7 @@ class Main {
                     dos.close();
                     fos.close();
                     break;
-                    
+
                 case 2:
                     // Código para ler um ID e imprimir as informações do objeto
                     System.out.print("Digite o ID do anime que deseja buscar: ");
@@ -92,24 +93,29 @@ class Main {
                     fis = new FileInputStream("anime.db");
                     dis = new DataInputStream(fis);
                     int recordSize;
+                    boolean numLapide;
                     boolean found = false;
 
                     while (dis.available() > 0) {
-                        recordSize = dis.readInt();
-                        byte[] recordData = new byte[recordSize];
-                        dis.readFully(recordData);
+                        numLapide=dis.readBoolean();
+                        if(numLapide==false){
+                            break;
+                        } // conferir a lápide
+                        recordSize = dis.readInt(); // ler indicador de tamanho
+                        byte[] recordData = new byte[recordSize]; 
+                        dis.readFully(recordData); // ler no arquivo vetor de bytes respectivo
 
                         Anime anime = new Anime();
-                        anime.fromByteArray(recordData);
+                        anime.fromByteArray(recordData); // transformar em objeto
 
-                        if (anime.getId() == idBuscado) {
+                        if (anime.getId() == idBuscado) { // conferir se id bate com o procurado
                             System.out.println(anime.toString());
                             found = true;
                             break;
                         }
                     }
 
-                    if (!found) {
+                    if (!found) { 
                         System.out.println("Anime com ID " + idBuscado + " não encontrado.");
                     }
 
