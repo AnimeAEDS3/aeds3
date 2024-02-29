@@ -23,6 +23,7 @@ class Main {
             option = scanner.nextInt();
 
             switch (option) {
+                // CARREGAR BASE ORIGINAL
                 case 1:
                     // Abrindo arquivos de dados original
                     File file = new File("dataanime.tsv");
@@ -63,7 +64,7 @@ class Main {
                     lastIdDb.close();
                     break;
 
-                case 2:
+                    case 2:
                     // Código para ler um ID e imprimir as informações do objeto
                     System.out.print("Digite o ID do anime que deseja buscar: ");
                     int idBuscado = scanner.nextInt();
@@ -107,16 +108,35 @@ class Main {
                     dis.close();
                     break;
 
+                // ADICIONAR NOVO REGISTRO
                 case 3:
-                    // id = lastId + 1
-                    RandomAccessFile rafAnime = new RandomAccessFile("anime.db", "rw");
-                    RandomAccessFile rafLastId = new RandomAccessFile("lastId.db", "rw");
-                    int newId = rafLastId.readInt() + 1;
+                    try (RandomAccessFile ra = new RandomAccessFile("anime.db", "rw")) {
+                        RandomAccessFile raId = new RandomAccessFile("lastId.db", "rw");
+                        // Acessando o último id inserido
+                        int newId = raId.readInt() + 1;
+                        ra.seek(0); // Voltar ao início do arquivo para atualizar o ID
 
-                    // Usando pra debug!
-                    System.out.println(newId); // newId
-                    System.out.println(rafAnime.readBoolean()); // Lapide
-                    System.out.println(rafAnime.readInt()); // Tam do registro
+                        Anime a = Anime.promptUser(newId);
+                        a.setId(newId);
+
+                        // Definir a posição de escrita no final do arquivo
+                        ra.seek(ra.length());
+
+                        // Gravar o novo registro
+                        ra.writeBoolean(false); // Lapide
+                        byte[] recordData = a.toByteArray();
+                        ra.writeInt(recordData.length); // Tamanho do registro
+                        ra.write(recordData); // Dados do registro
+
+                        // Atualizar o último ID inserido
+                        raId.seek(0);
+                        raId.writeInt(newId);
+
+                        System.out.println("Novo registro criado!");
+                    } catch (IOException e) {
+                        System.out.println("Erro ao criar novo registro: " + e.getMessage());
+                        e.printStackTrace();
+                    }
                     break;
 
                 default:

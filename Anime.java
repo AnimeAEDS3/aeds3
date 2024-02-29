@@ -3,6 +3,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Scanner;
 
 public class Anime {
 
@@ -382,4 +383,25 @@ public class Anime {
     
         return anime;
     }
+
+    public static Anime promptUser(int newId){
+        Scanner scanner = new Scanner(System.in);
+    
+        Anime anime = new Anime();
+    
+        System.out.print("Digite o título do anime: ");
+        anime.setTitle(scanner.nextLine());
+    
+        System.out.print("Digite o número de episódios: ");
+        anime.setEpisodes(scanner.nextInt());
+    
+        // Imprimir o objeto anime criado
+        System.out.print("Novo anime criado: ");
+        System.out.println(anime.getTitle() + " ID: " + newId);
+
+        scanner.close();
+    
+        return anime;
+    }
+    
 }
