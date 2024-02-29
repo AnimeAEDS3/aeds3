@@ -35,10 +35,11 @@ class Main {
                     fos = new FileOutputStream("anime.db");
                     dos = new DataOutputStream(fos);
                     RandomAccessFile rafAnimeDb = new RandomAccessFile("anime.db", "rw");
-                    RandomAccessFile lastIdDb = new RandomAccessFile("lastId.db", "rw");
 
                     // Pulando header
                     String header = raf.readLine();
+
+                    dos.writeInt(0); // reservando os 4 primeiros bytes para o último id
 
                     // Recebendo inputs do tsv
                     String line;
@@ -46,9 +47,9 @@ class Main {
                         // Função de extração dos dados do tsv
                         Anime anime = Anime.fromStringArray(line.split("\t"));
 
-                        // Escrever lastId atualizado no início do arquivo lastId.db
-                        lastIdDb.seek(0);
-                        lastIdDb.writeInt(anime.getId());
+                        // Escrever lastId atualizado no início do arquivo
+                        rafAnimeDb.seek(0);
+                        rafAnimeDb.writeInt(anime.getId());
                         
                         byte[] ba = anime.toByteArray(); // Objeto convertido em array de bytes
                         dos.writeBoolean(false); // Escrevendo a lápide antes do indicador de tamanho
@@ -61,7 +62,6 @@ class Main {
                     dos.close();
                     fos.close();
                     rafAnimeDb.close();
-                    lastIdDb.close();
                     break;
 
                     case 2:
@@ -74,6 +74,7 @@ class Main {
                     int recordSize;
                     boolean lapide;
                     boolean found = false;
+                    dis.readInt();
 
                     while (dis.available() > 0) {
                         lapide = dis.readBoolean();
@@ -111,9 +112,8 @@ class Main {
                 // ADICIONAR NOVO REGISTRO
                 case 3:
                     try (RandomAccessFile ra = new RandomAccessFile("anime.db", "rw")) {
-                        RandomAccessFile raId = new RandomAccessFile("lastId.db", "rw");
                         // Acessando o último id inserido
-                        int newId = raId.readInt() + 1;
+                        int newId = ra.readInt() + 1;
                         ra.seek(0); // Voltar ao início do arquivo para atualizar o ID
 
                         Anime a = Anime.promptUser(newId);
@@ -129,8 +129,8 @@ class Main {
                         ra.write(recordData); // Dados do registro
 
                         // Atualizar o último ID inserido
-                        raId.seek(0);
-                        raId.writeInt(newId);
+                        ra.seek(0);
+                        ra.writeInt(newId);
 
                         System.out.println("Novo registro criado!");
                     } catch (IOException e) {
