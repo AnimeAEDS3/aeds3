@@ -45,10 +45,10 @@ class Main {
                         // Função de extração dos dados do tsv
                         Anime anime = Anime.fromStringArray(line.split("\t"));
 
-                        // Escrever lastId atualizado no início do arquivo anime.db
+                        // Escrever lastId atualizado no início do arquivo lastId.db
                         lastIdDb.seek(0);
                         lastIdDb.writeInt(anime.getId());
-
+                        
                         byte[] ba = anime.toByteArray(); // Objeto convertido em array de bytes
                         dos.writeBoolean(false); // Escrevendo a lápide antes do indicador de tamanho
                         dos.writeInt(ba.length); // Indicador de tamanho
