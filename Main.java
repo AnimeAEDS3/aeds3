@@ -10,7 +10,6 @@ class Main {
         DataInputStream dis;
         Scanner scanner = new Scanner(System.in);
         int option;
-        int lastId = 0;
 
         try {
 
@@ -19,6 +18,7 @@ class Main {
             System.out.println("1. Carregar base de dados original");
             System.out.println("2. Busca por ID (READ)");
             System.out.println("3. Criar novo registro (CREATE)");
+            System.out.println("4. Deletar um registro por ID (DELETE)");
             System.out.print("Tarefa: ");
             option = scanner.nextInt();
 
@@ -67,10 +67,10 @@ class Main {
                     case 2:
                     // Código para ler um ID e imprimir as informações do objeto
                     System.out.print("Digite o ID do anime que deseja buscar: ");
-                    int idBuscado = scanner.nextInt();
-
                     fis = new FileInputStream("anime.db");
                     dis = new DataInputStream(fis);
+                    int idBuscado = scanner.nextInt();
+
                     int recordSize;
                     boolean lapide;
                     boolean found = false;
@@ -103,7 +103,6 @@ class Main {
                     if (!found) {
                         System.out.println("Anime com ID " + idBuscado + " não encontrado.");
                     }
-
                     // Fechar os fluxos
                     fis.close();
                     dis.close();
@@ -138,6 +137,51 @@ class Main {
                         e.printStackTrace();
                     }
                     break;
+
+                // DELETANDO REGISTRO
+                case 4:
+                System.out.print("Digite o ID do anime que deseja remover: ");
+                RandomAccessFile ra = new RandomAccessFile("anime.db", "rw");
+                int idRemover = scanner.nextInt();
+
+                    int recordSize2;
+                    boolean lapide2;
+                    boolean found2 = false;
+                    ra.readInt(); // ler ultimo id
+
+                    while (ra.getFilePointer() < ra.length()) {
+                        long posicaoLapide = ra.getFilePointer(); // guarda a posição da lapide
+                        lapide2 = ra.readBoolean();
+
+                        if (lapide2 == true) {
+                            recordSize2 = ra.readInt();
+                            ra.skipBytes(recordSize2);
+                            continue;
+                        }
+                        // Ler indicador de tamanho
+                        recordSize = ra.readInt();
+                        byte[] recordData = new byte[recordSize];
+                        // Ler no arquivo vetor de bytes respectivo
+                        ra.readFully(recordData);
+
+                        // Transformar em objeto
+                        Anime anime = new Anime();
+                        anime.fromByteArray(recordData);
+
+                        if (anime.getId() == idRemover) {
+                            ra.seek(posicaoLapide);
+                            ra.writeBoolean(true);
+                            System.out.println("O anime " + anime.getTitle() + ", com ID " + idRemover + ", foi removido");
+                            found2 = true;
+                            break;
+                        }
+                    }
+
+                    if (!found2) {
+                        System.out.println("Anime com ID " + idRemover + " não encontrado.");
+                    }
+                    break;
+
 
                 default:
                     System.out.println("Opção inválida.");
