@@ -9,130 +9,128 @@ class Main {
         FileInputStream fis;
         DataInputStream dis;
         Scanner scanner = new Scanner(System.in);
+        int option;
+        int lastId = 0;
 
         try {
-            System.out.println("Escolha uma opção:");
-            System.out.println("1. Realizar a carga da base de dados selecionada");
-            System.out.println("2. Ler ID para imprimir informações do objeto");
-            System.out.print("Opção: ");
-            int option = scanner.nextInt();
+
+            // Guia visual do crud
+            System.out.println("Escolha uma tarefa:");
+            System.out.println("1. Carregar base de dados original");
+            System.out.println("2. Busca por ID (READ)");
+            System.out.println("3. Criar novo registro (CREATE)"); // Usando pra debug
+            System.out.print("Tarefa: ");
+            option = scanner.nextInt();
 
             switch (option) {
                 case 1:
-                    // Código para realizar a carga da base de dados selecionada
-                    // Aqui você pode colocar o código que estava dentro do try antes
-
-                    // Opening original data
+                    // Abrindo arquivos de dados original
                     File file = new File("dataanime.tsv");
-                    RandomAccessFile raf = new RandomAccessFile(file, "r");
+                    RandomAccessFile raf = new RandomAccessFile(file, "rw");
 
-                    // Preparing input path
+                    System.out.println("Carregando dados de " + file.getPath() + "...");
+
+                    // Preparando caminho de input
                     fos = new FileOutputStream("anime.db");
                     dos = new DataOutputStream(fos);
+                    RandomAccessFile rafAnimeDb = new RandomAccessFile("anime.db", "rw");
+                    RandomAccessFile lastIdDb = new RandomAccessFile("lastId.db", "rw");
 
-                    // Skip header
+                    // Pulando header
                     String header = raf.readLine();
 
-                    // Receive inputs
+                    // Recebendo inputs do tsv
                     String line;
                     while ((line = raf.readLine()) != null) {
-                        String[] values = line.split("\t");
+                        // Função de extração dos dados do tsv
+                        Anime anime = Anime.fromStringArray(line.split("\t"));
 
-                        Anime anime = new Anime();
+                        // Escrever lastId atualizado no início do arquivo anime.db
+                        lastIdDb.seek(0);
+                        lastIdDb.writeInt(anime.getId());
 
-                        // Setting values
-                        anime.setTitle(values[0]);
-                        if (!values[1].equals("-"))
-                            anime.setId(Integer.parseInt(values[1]));
-                        if (!values[2].equals("-"))
-                            anime.setEpisodes(Integer.parseInt(values[2]));
-                        anime.setStatus(values[3]);
-                        if (!values[4].equals("-"))
-                            anime.setStartAiring(anime.parseDateString(values[4]).getTime());
-                        if (!values[5].equals("-"))
-                            anime.setEndAiring(anime.parseDateString(values[5]).getTime());
-                        anime.setStartingSeason(values[6]);
-                        anime.setBroadcastTime(values[7]);
-                        anime.setProducers(values[8].split(","));
-                        anime.setLicensors(values[9].split(","));
-                        anime.setStudios(values[10].split(","));
-                        anime.setSources(values[11]);
-                        anime.setGenres(values[12].split(","));
-                        anime.setDuration(values[13]);
-                        anime.setRating(values[14]);
-                        if (!values[15].equals("-"))
-                            anime.setScore(Float.parseFloat(values[15]));
-                        if (!values[16].equals("-"))
-                            anime.setScoredBy(Integer.parseInt(values[16]));
-                        if (!values[17].equals("-"))
-                            anime.setNumOfMembers(Integer.parseInt(values[17]));
-                        if (!values[18].equals("-"))
-                            anime.setNumOfFavorites(Integer.parseInt(values[18]));
-                        anime.setDescription(values[19]);
-                        anime.setType(values[20]);
-
-                        byte[] ba;
-                        ba = anime.toByteArray(); // objeto convertido em array de bytes
-                        dos.writeBoolean(true); // escrevendo a lápide antes do indicador de tamanho
-                        dos.writeInt(ba.length); // indicador de tamanho
+                        byte[] ba = anime.toByteArray(); // Objeto convertido em array de bytes
+                        dos.writeBoolean(false); // Escrevendo a lápide antes do indicador de tamanho
+                        dos.writeInt(ba.length); // Indicador de tamanho
                         dos.write(ba);
-                        System.out.println(anime.toString());
                     }
-                    raf.close();
 
-                    // Fechar o fluxo de saída após terminar de escrever
+                    raf.close();
+                    // Fechar o fluxo
                     dos.close();
                     fos.close();
+                    rafAnimeDb.close();
+                    lastIdDb.close();
                     break;
 
                 case 2:
                     // Código para ler um ID e imprimir as informações do objeto
                     System.out.print("Digite o ID do anime que deseja buscar: ");
-                    int idBuscado = scanner.nextInt(); // id que o usuário deseja procurar
+                    int idBuscado = scanner.nextInt();
 
                     fis = new FileInputStream("anime.db");
                     dis = new DataInputStream(fis);
                     int recordSize;
-                    boolean numLapide;
+                    boolean lapide;
                     boolean found = false;
 
                     while (dis.available() > 0) {
-                        numLapide=dis.readBoolean();
-                        if(numLapide==false){
-                            break;
-                        } // conferir a lápide
-                        recordSize = dis.readInt(); // ler indicador de tamanho
-                        byte[] recordData = new byte[recordSize]; 
-                        dis.readFully(recordData); // ler no arquivo vetor de bytes respectivo
+                        lapide = dis.readBoolean();
+                        if (lapide == true) {
+                            recordSize = dis.readInt();
+                            dis.skipBytes(recordSize);
+                            continue;
+                        }
+                        // Ler indicador de tamanho
+                        recordSize = dis.readInt();
+                        byte[] recordData = new byte[recordSize];
+                        // Ler no arquivo vetor de bytes respectivo
+                        dis.readFully(recordData);
 
+                        // Transformar em objeto
                         Anime anime = new Anime();
-                        anime.fromByteArray(recordData); // transformar em objeto
+                        anime.fromByteArray(recordData);
 
-                        if (anime.getId() == idBuscado) { // conferir se id bate com o procurado
+                        if (anime.getId() == idBuscado) {
                             System.out.println(anime.toString());
                             found = true;
                             break;
                         }
                     }
 
-                    if (!found) { 
+                    if (!found) {
                         System.out.println("Anime com ID " + idBuscado + " não encontrado.");
                     }
 
-                    // fechar os fluxos
+                    // Fechar os fluxos
                     fis.close();
                     dis.close();
                     break;
+
+                case 3:
+                    // id = lastId + 1
+                    RandomAccessFile rafAnime = new RandomAccessFile("anime.db", "rw");
+                    RandomAccessFile rafLastId = new RandomAccessFile("lastId.db", "rw");
+                    int newId = rafLastId.readInt() + 1;
+
+                    // Usando pra debug!
+                    System.out.println(newId); // newId
+                    System.out.println(rafAnime.readBoolean()); // Lapide
+                    System.out.println(rafAnime.readInt()); // Tam do registro
+                    break;
+
                 default:
                     System.out.println("Opção inválida.");
+
+                    scanner.close();
             }
 
         } catch (FileNotFoundException e) {
-            System.err.println("File not found: " + e.getMessage());
+            System.err.println("Arquivo não encontrado: " + e.getMessage());
         } catch (IOException e) {
-            System.err.println("Error reading file: " + e.getMessage());
+            System.err.println("Erro ao ler arquivo: " + e.getMessage());
         } catch (NumberFormatException e) {
-            System.err.println("Number format error: " + e.getMessage());
+            System.err.println("Erro de formatação numérico: " + e.getMessage());
         }
     }
 }

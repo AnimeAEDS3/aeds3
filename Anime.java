@@ -4,7 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 
-public class Anime{
+public class Anime {
 
     /* Attributes */
 
@@ -30,15 +30,13 @@ public class Anime{
     protected String description;
     protected String type;
 
-
     /* Constructor */
 
     public Anime() {
         this.title = "-";
-        this.id = 
-        this.episodes = -1;
+        this.id = this.episodes = -1;
         this.status = "-";
-         this.startAiring = 0;
+        this.startAiring = 0;
         this.startingSeason = "-";
         this.broadcastTime = "-";
         this.producers = new String[0];
@@ -56,7 +54,7 @@ public class Anime{
         this.type = "-";
     }
 
-    /* Getters and setters */
+    /* Getters e setters */
 
     public String getTitle() {
         return title;
@@ -226,9 +224,9 @@ public class Anime{
         this.type = type;
     }
 
-    /* Date conversions */
-    
-    public long dateStringToMilliseconds(String dateString){
+    /* Conversões entre data, string e milisegundos */
+
+    public static long dateStringToMilliseconds(String dateString) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         long milliseconds = 0;
         try {
@@ -254,41 +252,6 @@ public class Anime{
             e.printStackTrace();
             return null;
         }
-    }
-
-    /* CRUD */
-
-    private static void writeAnime(RandomAccessFile file, Anime anime, int recordNumber) throws IOException {
-        file.seek(recordNumber * 1024);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(baos);
-        oos.writeObject(anime);
-        byte[] bytes = baos.toByteArray();
-        file.write(bytes);
-    }
-
-    private static Anime readAnime(RandomAccessFile file, int recordNumber) throws IOException {
-        file.seek(recordNumber * 1024);
-        byte[] bytes = new byte[1024];
-        file.read(bytes);
-        ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-        ObjectInputStream ois = new ObjectInputStream(bais);
-        try {
-            return (Anime) ois.readObject();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    private static void updateAnime(RandomAccessFile file, Anime anime, int recordNumber) throws IOException {
-        writeAnime(file, anime, recordNumber);
-    }
-
-    private static void deleteAnime(RandomAccessFile file, int recordNumber) throws IOException {
-        file.seek(recordNumber * 1024);
-        byte[] bytes = new byte[1024];
-        file.write(bytes);
     }
 
     /* To bytes */
@@ -320,7 +283,7 @@ public class Anime{
         return baos.toByteArray();
     }
 
-     private static void writeStringArray(DataOutputStream dos, String[] array) throws IOException {
+    private static void writeStringArray(DataOutputStream dos, String[] array) throws IOException {
         // Escreve o tamanho do array
         dos.writeInt(array.length);
         // Escreve cada elemento do array
@@ -390,5 +353,33 @@ public class Anime{
                 ", description='" + description + '\'' +
                 ", type='" + type + '\'' +
                 '}';
+    }
+
+    public static Anime fromStringArray(String[] values) {
+        Anime anime = new Anime();
+    
+        anime.setTitle(values[0]);
+        anime.setId(Integer.parseInt(values[1]));
+        anime.setEpisodes(!values[2].equals("-") ? Integer.parseInt(values[2]) : anime.getEpisodes());
+        anime.setStatus(values[3]);
+        anime.setStartAiring(!values[4].equals("-") ? dateStringToMilliseconds(values[4]) : anime.getStartAiring());
+        anime.setEndAiring(!values[5].equals("-") ? dateStringToMilliseconds(values[5]) : anime.getEndAiring());
+        anime.setStartingSeason(values[6]);
+        anime.setBroadcastTime(values[7]);
+        anime.setProducers(!values[8].equals("-") ? values[8].split("\t") : anime.getProducers());
+        anime.setLicensors(!values[9].equals("-") ? values[9].split("\t") : anime.getLicensors());
+        anime.setStudios(!values[10].equals("-") ? values[10].split("\t") : anime.getStudios());
+        anime.setSources(values[11]);
+        anime.setGenres(!values[12].equals("-") ? values[12].split("\t") : anime.getGenres());
+        anime.setDuration(values[13]);
+        anime.setRating(values[14]);
+        anime.setScore(!values[15].equals("-") ? Float.parseFloat(values[15]) : anime.getScore());
+        anime.setScoredBy(!values[16].equals("-") ? Integer.parseInt(values[16]) : anime.getScoredBy());
+        anime.setNumOfMembers(!values[17].equals("-") ? Integer.parseInt(values[17]) : anime.getNumOfMembers());
+        anime.setNumOfFavorites(!values[18].equals("-") ? Integer.parseInt(values[18]) : anime.getNumOfFavorites());
+        anime.setDescription(values[19]);
+        anime.setType(values[20]);
+    
+        return anime;
     }
 }
