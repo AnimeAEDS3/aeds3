@@ -18,7 +18,7 @@ class Main {
             System.out.println("Escolha uma tarefa:");
             System.out.println("1. Carregar base de dados original");
             System.out.println("2. Busca por ID (READ)");
-            System.out.println("3. Criar novo registro (CREATE)"); // Usando pra debug
+            System.out.println("3. Criar novo registro (CREATE)");
             System.out.print("Tarefa: ");
             option = scanner.nextInt();
 
