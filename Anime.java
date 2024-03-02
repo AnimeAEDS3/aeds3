@@ -337,7 +337,7 @@ public class Anime {
                 ", id=" + id +
                 ", episodes=" + episodes +
                 ", status='" + status + '\'' +
-                ", startAiring=" + startAiring +
+                ", startAiring=" + MillisecondsToDateString(startAiring).toString() +
                 ", startingSeason='" + startingSeason + '\'' +
                 ", broadcastTime='" + broadcastTime + '\'' +
                 ", producers=" + Arrays.toString(producers) +
@@ -459,5 +459,21 @@ public class Anime {
     
         return anime;
     }
+
+    public static void animeInterface(){
+                System.out.println("    _          _                ");
+                System.out.println("   / \\   _ __ (_)_ __ ___   ___ ");
+                System.out.println("  / _ \\ | '_ \\| | '_ ` _ \\ / _ \\");
+                System.out.println(" / ___ \\| | | | | | | | | | | _/");
+                System.out.println("/_/   \\_\\_| |_|_|_| |_| |_|\\___|");
+                System.out.println();
+                System.out.println("1. Carregar base de dados original");
+                System.out.println("2. Criar novo registro (CREATE)");
+                System.out.println("3. Busca por ID (READ)");
+                System.out.println("4. Deletar um registro por ID (DELETE)");
+                System.out.println("5. Update em um registro por ID (UPDATE)");
+                System.out.println("6. Sair");
+                System.out.print(">> ");
+        }
     
 }
