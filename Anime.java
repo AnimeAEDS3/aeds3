@@ -29,7 +29,7 @@ public class Anime {
     protected int numOfMembers;
     protected int numOfFavorites;
     protected String description;
-    protected String type;
+    protected char[] type; 
 
     /* Constructor */
 
@@ -52,7 +52,7 @@ public class Anime {
         this.numOfMembers = 0;
         this.numOfFavorites = 0;
         this.description = "-";
-        this.type = "-";
+        this.type = new char[2]; 
     }
 
     /* Getters e setters */
@@ -217,11 +217,11 @@ public class Anime {
         this.description = description;
     }
 
-    public String getType() {
+    public char[] getType() { 
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(char[] type) { 
         this.type = type;
     }
 
@@ -279,7 +279,7 @@ public class Anime {
         dos.writeInt(numOfMembers);
         dos.writeInt(numOfFavorites);
         dos.writeUTF(description);
-        dos.writeUTF(type);
+        writeCharArray(dos, type); 
 
         return baos.toByteArray();
     }
@@ -290,6 +290,13 @@ public class Anime {
         // Escreve cada elemento do array
         for (String element : array) {
             dos.writeUTF(element);
+        }
+    }
+
+    private static void writeCharArray(DataOutputStream dos, char[] array) throws IOException { 
+        dos.writeInt(array.length);
+        for (char element : array) {
+            dos.writeChar(element);
         }
     }
 
@@ -316,7 +323,7 @@ public class Anime {
         numOfMembers = dis.readInt();
         numOfFavorites = dis.readInt();
         description = dis.readUTF();
-        type = dis.readUTF();
+        type = readCharArray(dis); 
     }
 
     private String[] readStringArray(DataInputStream dis) throws IOException {
@@ -324,6 +331,15 @@ public class Anime {
         String[] array = new String[length];
         for (int i = 0; i < length; i++) {
             array[i] = dis.readUTF();
+        }
+        return array;
+    }
+
+    private char[] readCharArray(DataInputStream dis) throws IOException { 
+        int length = dis.readInt();
+        char[] array = new char[length];
+        for (int i = 0; i < length; i++) {
+            array[i] = dis.readChar();
         }
         return array;
     }
@@ -352,13 +368,13 @@ public class Anime {
                 ", numOfMembers=" + numOfMembers +
                 ", numOfFavorites=" + numOfFavorites +
                 ", description='" + description + '\'' +
-                ", type='" + type + '\'' +
+                ", type=" + Arrays.toString(type) + 
                 '}';
     }
 
     public static Anime fromStringArray(String[] values) {
         Anime anime = new Anime();
-    
+
         anime.setTitle(values[0]);
         anime.setId(Integer.parseInt(values[1]));
         anime.setEpisodes(!values[2].equals("-") ? Integer.parseInt(values[2]) : anime.getEpisodes());
@@ -379,101 +395,101 @@ public class Anime {
         anime.setNumOfMembers(!values[17].equals("-") ? Integer.parseInt(values[17]) : anime.getNumOfMembers());
         anime.setNumOfFavorites(!values[18].equals("-") ? Integer.parseInt(values[18]) : anime.getNumOfFavorites());
         anime.setDescription(values[19]);
-        anime.setType(values[20]);
-    
+        anime.setType(values[20].toCharArray()); 
+
         return anime;
     }
 
-    public static Anime promptUser(int newId){
+    public static Anime promptUser(int newId) {
         Scanner scanner = new Scanner(System.in);
-    
+
         Anime anime = new Anime();
-    
+
         System.out.print("Digite o título do anime: ");
         anime.setTitle(scanner.nextLine());
-    
+
         System.out.print("Digite o número de episódios: ");
         anime.setEpisodes(scanner.nextInt());
         scanner.nextLine(); // Consume newline
-        
+
         // System.out.print("Digite o status do anime: ");
         // anime.setStatus(scanner.nextLine());
-        
+
         // System.out.print("Digite a data de início de transmissão (formato: yyyy-MM-dd): ");
         // anime.setStartAiring(dateStringToMilliseconds(scanner.nextLine()));
-        
+
         // System.out.print("Digite a data de fim de transmissão (formato: yyyy-MM-dd): ");
         // anime.setEndAiring(dateStringToMilliseconds(scanner.nextLine()));
-        
+
         // System.out.print("Digite a temporada de início: ");
         // anime.setStartingSeason(scanner.nextLine());
-        
+
         // System.out.print("Digite o horário de transmissão: ");
         // anime.setBroadcastTime(scanner.nextLine());
-        
+
         // System.out.print("Digite os produtores (separados por tabulação): ");
         // anime.setProducers(scanner.nextLine().split("\t"));
-        
+
         // System.out.print("Digite os licenciantes (separados por tabulação): ");
         // anime.setLicensors(scanner.nextLine().split("\t"));
-        
+
         // System.out.print("Digite os estúdios (separados por tabulação): ");
         // anime.setStudios(scanner.nextLine().split("\t"));
-        
+
         // System.out.print("Digite a fonte: ");
         // anime.setSources(scanner.nextLine());
-        
+
         // System.out.print("Digite os gêneros (separados por tabulação): ");
         // anime.setGenres(scanner.nextLine().split("\t"));
-        
+
         // System.out.print("Digite a duração de cada episódio: ");
         // anime.setDuration(scanner.nextLine());
-        
+
         // System.out.print("Digite a classificação indicativa: ");
         // anime.setRating(scanner.nextLine());
-        
+
         // System.out.print("Digite a pontuação: ");
         // anime.setScore(scanner.nextFloat());
-        
+
         // System.out.print("Digite o número de pessoas que pontuaram: ");
         // anime.setScoredBy(scanner.nextInt());
-        
+
         // System.out.print("Digite o número de membros: ");
         // anime.setNumOfMembers(scanner.nextInt());
-        
+
         // System.out.print("Digite o número de favoritos: ");
         // anime.setNumOfFavorites(scanner.nextInt());
         // scanner.nextLine(); // Consume newline
-        
+
         // System.out.print("Digite a descrição: ");
         // anime.setDescription(scanner.nextLine());
-        
+
         // System.out.print("Digite o tipo de anime: ");
-        // anime.setType(scanner.nextLine());
-    
+        // anime.setType(scanner.nextLine().toCharArray());
+
         // Imprimir o objeto anime criado
         System.out.print("Novo anime criado: ");
         System.out.println(anime.getTitle() + " ID: " + newId);
 
         scanner.close();
-    
+
         return anime;
     }
 
-    public static void animeInterface(){
-                System.out.println("    _          _                ");
-                System.out.println("   / \\   _ __ (_)_ __ ___   ___ ");
-                System.out.println("  / _ \\ | '_ \\| | '_ ` _ \\ / _ \\");
-                System.out.println(" / ___ \\| | | | | | | | | | | _/");
-                System.out.println("/_/   \\_\\_| |_|_|_| |_| |_|\\___|");
-                System.out.println();
-                System.out.println("1. Carregar base de dados original");
-                System.out.println("2. Criar novo registro (CREATE)");
-                System.out.println("3. Busca por ID (READ)");
-                System.out.println("4. Deletar um registro por ID (DELETE)");
-                System.out.println("5. Update em um registro por ID (UPDATE)");
-                System.out.println("6. Sair");
-                System.out.print(">> ");
-        }
-    
+    public static void animeInterface() {
+        System.out.println("    _          _                ");
+        System.out.println("   / \\   _ __ (_)_ __ ___   ___ ");
+        System.out.println("  / _ \\ | '_ \\| | '_ ` _ \\ / _ \\");
+        System.out.println(" / ___ \\| | | | | | | | | | | _/");
+        System.out.println("/_/   \\_\\_| |_|_|_| |_| |_|\\___|");
+        System.out.println();
+        System.out.println("1. Carregar base de dados original");
+        System.out.println("2. Criar novo registro (CREATE)");
+        System.out.println("3. Busca por ID (READ)");
+        System.out.println("4. Deletar um registro por ID (DELETE)");
+        System.out.println("5. Update em um registro por ID (UPDATE)");
+        System.out.println("6. Sair");
+        System.out.print(">> ");
+    }
+
 }

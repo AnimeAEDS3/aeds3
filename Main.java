@@ -63,7 +63,6 @@ class Main {
                     try (RandomAccessFile ra = new RandomAccessFile("anime.db", "rw")) {
                         // Acessando o último id inserido
                         int newId = ra.readInt() + 1;
-                        ra.seek(0); // Voltar ao início do arquivo para atualizar o ID
 
                         Anime a = Anime.promptUser(newId);
                         a.setId(newId);
