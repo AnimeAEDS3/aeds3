@@ -401,77 +401,19 @@ public class Anime {
     }
 
     public static Anime promptUser(int newId) {
-        Scanner scanner = new Scanner(System.in);
+        Scanner sc = new Scanner(System.in);
 
         Anime anime = new Anime();
 
         System.out.print("Digite o título do anime: ");
-        anime.setTitle(scanner.nextLine());
+        anime.setTitle(sc.nextLine());
 
         System.out.print("Digite o número de episódios: ");
-        anime.setEpisodes(scanner.nextInt());
-        scanner.nextLine(); // Consume newline
-
-        // System.out.print("Digite o status do anime: ");
-        // anime.setStatus(scanner.nextLine());
-
-        // System.out.print("Digite a data de início de transmissão (formato: yyyy-MM-dd): ");
-        // anime.setStartAiring(dateStringToMilliseconds(scanner.nextLine()));
-
-        // System.out.print("Digite a data de fim de transmissão (formato: yyyy-MM-dd): ");
-        // anime.setEndAiring(dateStringToMilliseconds(scanner.nextLine()));
-
-        // System.out.print("Digite a temporada de início: ");
-        // anime.setStartingSeason(scanner.nextLine());
-
-        // System.out.print("Digite o horário de transmissão: ");
-        // anime.setBroadcastTime(scanner.nextLine());
-
-        // System.out.print("Digite os produtores (separados por tabulação): ");
-        // anime.setProducers(scanner.nextLine().split("\t"));
-
-        // System.out.print("Digite os licenciantes (separados por tabulação): ");
-        // anime.setLicensors(scanner.nextLine().split("\t"));
-
-        // System.out.print("Digite os estúdios (separados por tabulação): ");
-        // anime.setStudios(scanner.nextLine().split("\t"));
-
-        // System.out.print("Digite a fonte: ");
-        // anime.setSources(scanner.nextLine());
-
-        // System.out.print("Digite os gêneros (separados por tabulação): ");
-        // anime.setGenres(scanner.nextLine().split("\t"));
-
-        // System.out.print("Digite a duração de cada episódio: ");
-        // anime.setDuration(scanner.nextLine());
-
-        // System.out.print("Digite a classificação indicativa: ");
-        // anime.setRating(scanner.nextLine());
-
-        // System.out.print("Digite a pontuação: ");
-        // anime.setScore(scanner.nextFloat());
-
-        // System.out.print("Digite o número de pessoas que pontuaram: ");
-        // anime.setScoredBy(scanner.nextInt());
-
-        // System.out.print("Digite o número de membros: ");
-        // anime.setNumOfMembers(scanner.nextInt());
-
-        // System.out.print("Digite o número de favoritos: ");
-        // anime.setNumOfFavorites(scanner.nextInt());
-        // scanner.nextLine(); // Consume newline
-
-        // System.out.print("Digite a descrição: ");
-        // anime.setDescription(scanner.nextLine());
-
-        // System.out.print("Digite o tipo de anime: ");
-        // anime.setType(scanner.nextLine().toCharArray());
+        anime.setEpisodes(sc.nextInt());
 
         // Imprimir o objeto anime criado
         System.out.print("Novo anime criado: ");
         System.out.println(anime.getTitle() + " ID: " + newId);
-
-        scanner.close();
 
         return anime;
     }
