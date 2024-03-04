@@ -134,7 +134,7 @@ class Main {
 
                         // Timer pra dar tempo de ler
                         try {
-                            Thread.sleep(3000); // 5000 milliseconds = 3 segundos
+                            Thread.sleep(3000); // 3000 milliseconds = 3 segundos
                         } catch (InterruptedException e) {
                             System.err.println("Timer interrupted: " + e.getMessage());
                         }
