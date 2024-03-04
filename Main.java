@@ -84,6 +84,7 @@ class Main {
                             ra.writeInt(newId);
 
                             System.out.println("Novo registro criado!");
+                            timer();
                         } catch (IOException e) {
                             System.out.println("Erro ao criar novo registro: " + e.getMessage());
                             e.printStackTrace();
@@ -122,6 +123,7 @@ class Main {
                             if (anime.getId() == idBuscado) {
                                 System.out.println(anime.toString());
                                 encontradoRead = true;
+                                timer();
                                 break;
                             }
                         }
@@ -131,14 +133,6 @@ class Main {
                         }
                         fis.close();
                         dis.close();
-
-                        // Timer pra dar tempo de ler
-                        try {
-                            Thread.sleep(3000); // 3000 milliseconds = 3 segundos
-                        } catch (InterruptedException e) {
-                            System.err.println("Timer interrupted: " + e.getMessage());
-                        }
-
                         break;
 
                     // DELETANDO REGISTRO
@@ -176,6 +170,7 @@ class Main {
                                 raDel.writeBoolean(true);
                                 System.out.println(
                                         "O anime " + anime.getTitle() + ", com ID " + idRemover + ", foi removido");
+                                timer();
                                 encontradoDel = true;
                                 break;
                             }
@@ -242,6 +237,7 @@ class Main {
 
                                     System.out
                                             .println("Registro atualizado com sucesso, movido para o fim do arquivo.");
+                                    timer();
                                     encontrado = true;
                                 } else { // Se o novo registro for <= registro antigo
                                     // Move o ponteiro para o inicio do registro antigo
@@ -253,6 +249,7 @@ class Main {
                                     raUpd.write(novoRecordData);
 
                                     System.out.println("Registro atualizado com sucesso, mantido no mesmo lugar.");
+                                    timer();
                                     encontrado = true;
                                 }
                                 break;
@@ -262,6 +259,7 @@ class Main {
 
                         if (!encontrado) {
                             System.out.println("Anime com ID " + idAtualizar + " não encontrado.");
+                            timer();
                         }
 
                         raUpd.close();
@@ -289,6 +287,15 @@ class Main {
             System.err.println("Erro de formatação numérico: " + e.getMessage());
         } catch (InputMismatchException e) {
             System.err.println("Esperado um inteiro.");
+        }
+    }
+
+    public static void timer() {
+        // Timer pra dar tempo de ler uma informação
+        try {
+            Thread.sleep(2000); // 2000 milliseconds = 2 segundos
+        } catch (InterruptedException e) {
+            System.err.println("Timer interrupted: " + e.getMessage());
         }
     }
 }
