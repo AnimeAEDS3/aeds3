@@ -12,7 +12,8 @@ public class Directory {
         this.file = new File(F); // creates the "file" file
         fileReader = new RandomAccessFile(file, "rw"); // opens the file in read and write mode
         if(fileReader.length() > 0){
-            p = fileReader.readInt(); // initializes depth as 1
+            p = fileReader.readInt();
+            loadDirectory();
         } else{
             p = 1;
         }
@@ -184,6 +185,29 @@ public class Directory {
                 System.out.println("address = " + fileReader.readLong());
                 position = fileReader.getFilePointer();
                 count++;
+            }
+        }
+    }
+
+    public void saveDirectory() throws IOException {
+        File dirFile = new File("dir.db");
+        try (DataOutputStream out = new DataOutputStream(new FileOutputStream(dirFile))) {
+            out.writeInt(p);
+            out.writeInt(dir.size());
+            for (Long address : dir) {
+                out.writeLong(address);
+            }
+        }
+    }
+
+    public void loadDirectory() throws IOException {
+        File dirFile = new File("dir.db");
+        try (DataInputStream in = new DataInputStream(new FileInputStream(dirFile))) {
+            p = in.readInt();
+            int size = in.readInt();
+            dir = new ArrayList<>(size);
+            for (int i = 0; i < size; i++) {
+                dir.add(in.readLong());
             }
         }
     }
