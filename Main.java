@@ -303,6 +303,7 @@ class Main {
 
                 }
             }
+            d.saveDirectory();
             raf.close();
 
             // Catching errors
