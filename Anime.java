@@ -430,7 +430,8 @@ public class Anime {
         System.out.println("3. Busca por ID (READ)");
         System.out.println("4. Deletar um registro por ID (DELETE)");
         System.out.println("5. Update em um registro por ID (UPDATE)");
-        System.out.println("6. Sair");
+        System.out.println("6. Pesquisa pelo index (HASH EXTENDIDO)");
+        System.out.println("7. Sair");
         System.out.print(">> ");
     }
 
