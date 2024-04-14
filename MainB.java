@@ -192,6 +192,7 @@ class MainB {
                                 System.out.println("Registro não encontrado");
                                 break;
                             } //dupla verificação de existência
+
                             // Ler indicador de tamanho
                             tamRegistroAtt = raUpd.readInt();
                             byte[] recordData = new byte[tamRegistroAtt];
@@ -216,11 +217,13 @@ class MainB {
 
                                     // Move pointeiro pro fim do arquivo
                                     raUpd.seek(raUpd.length());
+                                    long newEndereco = raUpd.getFilePointer();
 
                                     // Escrever o novo registro
                                     raUpd.writeBoolean(false); // Lapide
                                     raUpd.writeInt(novoRecordSize); // Tamanho do registro
                                     raUpd.write(novoRecordData); // Novo anime
+                                    ABMais.update(idAtualizar, newEndereco); //atualiza na árvore o novo endereço
 
                                     System.out
                                             .println("Registro atualizado com sucesso, movido para o fim do arquivo.");
