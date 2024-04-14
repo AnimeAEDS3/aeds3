@@ -63,7 +63,7 @@ public class ArvoreBPlus {
     }
     
     public boolean createRec(long paginaAtual) throws IOException {
-        // Caso base da recursão: a página não existe, o que indica a necessidade de criar uma nova
+        
         if (paginaAtual == -1) {
             cresceu = true;
             paginaAux = -1;
@@ -109,16 +109,16 @@ public class ArvoreBPlus {
             pagina.numElementos++;
             arq.seek(paginaAtual);
             arq.write(pagina.getBytes());
-            cresceu = false;  // A árvore não cresce mais após a inserção bem-sucedida
+            cresceu = false;  // A árvore não cresce mais após a inserção certa
             return true;
         }
     
-        // Divide a página atual porque ela está cheia
+        // Divide a página atual porque ela tá cheia
         Pagina novaPagina = new Pagina(ordem);
         int meio = (pagina.numElementos + 1) / 2;
         boolean novoElementoNaPaginaNova = i >= meio;
     
-        // Transfere metade das chaves para a nova página
+        // Transfere metade das chaves pra nova página
         for (int j = meio; j < pagina.numElementos; j++) {
             novaPagina.chaves[j - meio] = pagina.chaves[j];
             novaPagina.ponteirosChave[j - meio] = pagina.ponteirosChave[j];
@@ -130,7 +130,7 @@ public class ArvoreBPlus {
     
         // Insere o novo elemento na página adequada após a divisão
         if (novoElementoNaPaginaNova) {
-            // Caso o novo elemento pertença à nova página
+            // se o novo elemento pertencer à nova página
             for (int j = novaPagina.numElementos; j > i - meio; j--) {
                 novaPagina.chaves[j] = novaPagina.chaves[j - 1];
                 novaPagina.ponteirosChave[j] = novaPagina.ponteirosChave[j - 1];
@@ -141,7 +141,7 @@ public class ArvoreBPlus {
             novaPagina.filhos[i - meio + 1] = paginaAux;
             novaPagina.numElementos++;
         } else {
-            // Caso o novo elemento pertença à página original
+            // se o novo elemento pertencer à página original
             for (int j = meio; j > i; j--) {
                 pagina.chaves[j] = pagina.chaves[j - 1];
                 pagina.ponteirosChave[j] = pagina.ponteirosChave[j - 1];
@@ -186,7 +186,7 @@ public class ArvoreBPlus {
         arq.read(byteA);
         pa.setBytes(byteA);
     
-        // Busca linear para encontrar a posição do ID
+        // busca pra encontrar a posição do ID
         int i = 0;
         while (i < pa.numElementos && id > pa.chaves[i]) {
             i++;
@@ -197,7 +197,7 @@ public class ArvoreBPlus {
             pa.ponteirosChave[i] = newPointer; // Atualiza o ponteiro da chave
             arq.seek(pagina);
             arq.write(pa.getBytes()); // Escreve a página modificada de volta no arquivo
-            return true; // Retorna sucesso na atualização
+            return true; // Retorna true na atualização
         }
     
         // Continua a busca na sub-árvore apropriada se não for folha
@@ -241,14 +241,14 @@ public class ArvoreBPlus {
     }
 
     public boolean delete(int id) throws IOException {
-        // Primeiro, buscamos a raiz da árvore no arquivo.
+        // buscamos a raiz da árvore no arquivo.
         arq.seek(0);
         long raiz = arq.readLong();
         if (raiz == -1) {
-            return false;  // Árvore está vazia, nada para deletar.
+            return false;  // Árvore tá vazia, nada pra deletar.
         }
     
-        // Sinaliza se a estrutura da árvore foi alterada (diminuição na altura).
+        // Sinaliza se diminuiu a altura.
         diminuiu = false;
         // Chamada recursiva para deletar o elemento.
         boolean excluido = deleteRec(id, raiz, raiz);
@@ -285,7 +285,7 @@ public class ArvoreBPlus {
         arq.read(byteA);
         paginaAtual.setBytes(byteA);
     
-        // Busca linear para encontrar o ID ou decidir para qual filho ir.
+        // Busca pra encontrar o ID ou decidir para qual filho ir.
         int i = 0;
         while (i < paginaAtual.numElementos && id > paginaAtual.chaves[i]) {
             i++;
@@ -309,12 +309,12 @@ public class ArvoreBPlus {
             excluido = deleteRec(id, paginaAtual.filhos[i], raiz);
         }
     
-        // Se não houve exclusão ou não é necessário reestruturar, retorna.
+        // se não teve exclusão ou não é necessário reestruturar, retorna.
         if (!diminuiu || !excluido) {
             return excluido;
         }
     
-        // Reestrutura a árvore se necessário após a exclusão.
+        // reestrutura a árvore se necessário após a exclusão.
         reestruturar(pagina, raiz);
     
         return excluido;
@@ -343,18 +343,18 @@ public class ArvoreBPlus {
         // Encontra a posição da página entre os filhos do pai.
         while (idx <= pai.numElementos && pai.filhos[idx] != pagina) idx++;
     
-        boolean borrowed = false;
+        boolean emprestado = false;
         // Tenta empréstimo com o irmão esquerdo.
         if (idx > 0) {
-            borrowed = emprestIrmaoEsquerdo(pagina, pai.filhos[idx - 1], paginaPai, idx);
+            emprestado = emprestIrmaoEsquerdo(pagina, pai.filhos[idx - 1], paginaPai, idx);
         }
         // Tenta empréstimo com o irmão direito se o esquerdo falhar.
-        if (!borrowed && idx < pai.numElementos) {
-            borrowed = emprestIrmaoDireito(pagina, pai.filhos[idx + 1], paginaPai, idx);
+        if (!emprestado && idx < pai.numElementos) {
+            emprestado = emprestIrmaoDireito(pagina, pai.filhos[idx + 1], paginaPai, idx);
         }
     
         // Se o empréstimo falhar, realiza a fusão.
-        if (!borrowed) {
+        if (!emprestado) {
             if (idx > 0) {
                 fundirIrmas(pai.filhos[idx - 1], pagina, paginaPai, idx - 1);
             } else {
@@ -469,7 +469,7 @@ public class ArvoreBPlus {
     }
     
     private void fundirIrmas(long paginaEsquerda, long paginaDireita, long paginaPai, int idxPai) throws IOException {
-        // Carrega as páginas irmãs que serão fundidas.
+        // Carrega as páginas irmãs que serão fundidas
         arq.seek(paginaEsquerda);
         Pagina esquerda = new Pagina(ordem);
         byte[] byteA = new byte[tamPag];
@@ -488,7 +488,7 @@ public class ArvoreBPlus {
         System.arraycopy(direita.filhos, 0, esquerda.filhos, esquerda.numElementos + 1, direita.numElementos + 1);
         esquerda.numElementos += direita.numElementos;
     
-        // Atualiza a página pai para remover a referência à página direita.
+        // Atualiza a página pai pra remover a referência à página direita
         arq.seek(paginaPai);
         Pagina pai = new Pagina(ordem);
         byteA = new byte[tamPag];
