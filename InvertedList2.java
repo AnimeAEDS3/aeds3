@@ -21,9 +21,7 @@ public class InvertedList2 implements Serializable {
         for (String genre : genres) {
             String[] terms = genre.toLowerCase().split("\\s+");
             for (String term : terms) {
-                if (term.length() >= 3) {
-                    invertedIndex.computeIfAbsent(term, k -> new ArrayList<>()).add(key);
-                }
+                invertedIndex.computeIfAbsent(term, k -> new ArrayList<>()).add(key);
             }
         }
     }
@@ -31,10 +29,15 @@ public class InvertedList2 implements Serializable {
     public List<Key> getKeys(String[] terms) {
         List<Key> keys = new ArrayList<>();
         for (String term : terms) {
-            keys.addAll(invertedIndex.getOrDefault(term.toLowerCase(), new ArrayList<>()));
+            for (Map.Entry<String, List<Key>> entry : invertedIndex.entrySet()) {
+                if (entry.getKey().toLowerCase().contains(term.toLowerCase())) {
+                    keys.addAll(entry.getValue());
+                }
+            }
         }
         return keys;
     }
+    
 
     public void removeKey(String[] genres, Key key) {
         for (String genre : genres) {

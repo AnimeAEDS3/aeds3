@@ -405,10 +405,10 @@ public class Anime {
 
         Anime anime = new Anime();
 
-        System.out.print("Digite o título do anime: ");
+        System.out.print("Digite o titulo do anime: ");
         anime.setTitle(sc.nextLine());
 
-        System.out.print("Digite o número de episódios: ");
+        System.out.print("Digite o numero de episódios: ");
         anime.setEpisodes(sc.nextInt());
 
         // Imprimir o objeto anime criado
@@ -434,9 +434,10 @@ public class Anime {
         System.out.println("7. Pesquisa pelo index (ARVORE B+)");
         System.out.println("8. Pesquisa por palavra (LISTA INVERTIDA)");
         System.out.println("9. Pesquisa por genero (LISTA INVERTIDA)");
-        System.out.println("10. Imprimir hash extendido");
-        System.out.println("11. Imprimir Arvore B+");
-        System.out.println("12. Sair");
+        System.out.println("10. Pesquisa por nome e genero (LISTA INVERTIDA)");
+        System.out.println("11. Imprimir hash extendido");
+        System.out.println("12. Imprimir Arvore B+");
+        System.out.println("13. Sair");
         System.out.print(">> ");
     }
 

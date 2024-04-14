@@ -21,9 +21,7 @@ public class InvertedList implements Serializable {
     public void addKey(String animeName, Key key) {
         String[] terms = animeName.toLowerCase().split("\\s+");
         for (String term : terms) {
-            if (term.length() >= 3) {
-                invertedIndex.computeIfAbsent(term, k -> new ArrayList<>()).add(key);
-            }
+            invertedIndex.computeIfAbsent(term, k -> new ArrayList<>()).add(key);
         }
     }
 

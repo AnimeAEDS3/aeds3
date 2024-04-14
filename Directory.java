@@ -11,10 +11,10 @@ public class Directory {
     public Directory(String F) throws IOException {
         this.file = new File(F); // creates the "file" file
         fileReader = new RandomAccessFile(file, "rw"); // opens the file in read and write mode
-        if(fileReader.length() > 0){
-            p = fileReader.readInt();
+        if (fileReader.length() > 0) {
             loadDirectory();
-        } else{
+            p = fileReader.readInt();
+        } else {
             p = 1;
         }
         for (int i = 0; i < (int) Math.pow(2, p); i++) {
@@ -33,7 +33,7 @@ public class Directory {
     }
 
     public int HashFunc(int id) {
-        return (int) (id % ( Math.pow(2, p))); // returns k mod 2p
+        return (int) (id % (Math.pow(2, p))); // returns k mod 2p
     }
 
     public int bitExtracted(int number, int p) {
@@ -81,15 +81,14 @@ public class Directory {
                 } catch (Exception e) {
                     int bit = bitExtracted(i, p - 1);
                     dir.add(i, dir.get(bit));
-                    if(bit == pos) newPos=i;
+                    if (bit == pos)
+                        newPos = i;
                 }
             }
         }
 
-
-
         for (Key key : keys) {
-            posKey = HashFunc(key); //redos the hash function for each of the buckets items 
+            posKey = HashFunc(key); // redos the hash function for each of the buckets items
             if (pos == posKey) {
                 k1.add(key);
             } else {
@@ -98,7 +97,7 @@ public class Directory {
             }
         }
 
-         //adds the new item to correct bucket
+        // adds the new item to correct bucket
         posKey = HashFunc(item);
         if (pos == posKey) {
             k1.add(item);
@@ -108,7 +107,7 @@ public class Directory {
         }
         b.Resetbucket(k1);
 
-        //if second bucket was created adds it to directory
+        // if second bucket was created adds it to directory
         if (k2.size() > 0) {
             b2 = new Bucket(b.getP(), fileReader.length(), file);
             b2.Resetbucket(k2);
@@ -117,9 +116,7 @@ public class Directory {
         }
         posKey++;
     }
-   
-   
-   
+
     public Bucket readBucket(long address) throws IOException {
         Bucket b = new Bucket(p, address, file);
         b.readFile(address); // sets b with info from that address
@@ -166,7 +163,7 @@ public class Directory {
     }
 
     public void clear() {
-        if(file.length() > 0){
+        if (file.length() > 0) {
             file.delete(); // deletes file
         }
     }
@@ -204,12 +201,14 @@ public class Directory {
 
     public void loadDirectory() throws IOException {
         File dirFile = new File("dir.db");
-        try (DataInputStream in = new DataInputStream(new FileInputStream(dirFile))) {
-            p = in.readInt();
-            int size = in.readInt();
-            dir = new ArrayList<>(size);
-            for (int i = 0; i < size; i++) {
-                dir.add(in.readLong());
+        if (dirFile.length() > 0) {
+            try (DataInputStream in = new DataInputStream(new FileInputStream(dirFile))) {
+                p = in.readInt();
+                int size = in.readInt();
+                dir = new ArrayList<>(size);
+                for (int i = 0; i < size; i++) {
+                    dir.add(in.readLong());
+                }
             }
         }
     }
@@ -217,14 +216,14 @@ public class Directory {
     public void deleteItem(int id) throws IOException {
         int hashFuncValue = HashFunc(id);
         int pos = bitExtracted(hashFuncValue, p); // which bucket
-    
+
         try {
             Bucket b = readBucket(dir.get(pos));
             if (b.getP() < p) {
                 pos = bitExtracted(hashFuncValue, b.getP());
                 b = readBucket(dir.get(pos));
             }
-    
+
             long bucketAddress = b.getAddress();
             if (bucketAddress != -1) {
                 b.deleteKey(id);
@@ -234,18 +233,18 @@ public class Directory {
             e.printStackTrace();
         }
     }
-    
+
     public void updateItem(int id, long newAddress) throws IOException {
         int hashFuncValue = HashFunc(id);
         int pos = bitExtracted(hashFuncValue, p); // which bucket
-    
+
         try {
             Bucket b = readBucket(dir.get(pos));
             if (b.getP() < p) {
                 pos = bitExtracted(hashFuncValue, b.getP());
                 b = readBucket(dir.get(pos));
             }
-    
+
             long bucketAddress = b.getAddress();
             if (bucketAddress != -1) {
                 b.updateKey(id, newAddress);
@@ -255,6 +254,5 @@ public class Directory {
             e.printStackTrace();
         }
     }
-    
 
 }

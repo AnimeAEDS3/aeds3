@@ -15,6 +15,7 @@ class Main {
         Directory d = new Directory("index.db");
         ArvoreBPlus ABMais = new ArvoreBPlus(8, "arvore.db");
         Scanner scanner = new Scanner(System.in);
+        Console c = System.console();
 
         try (RandomAccessFile raf = new RandomAccessFile("anime.db", "rwd")) {
 
@@ -25,9 +26,13 @@ class Main {
                 option = scanner.nextInt();
 
                 switch (option) {
+
                     // CARREGAR BASE ORIGINAL
                     case 1:
+                        // Clearing case other animes have been inserted before
                         d.clear();
+                        limpar();
+                        // Starting
                         try (RandomAccessFile TSVRAF = new RandomAccessFile("dataanime.tsv", "rwd")) {
 
                             System.out.println("Carregando dados...");
@@ -68,6 +73,7 @@ class Main {
                             }
                             raf.seek(0);
                             raf.writeInt(last_id);
+                            d.saveDirectory();
                             TSVRAF.close();
 
                         } catch (IOException e) {
@@ -246,7 +252,9 @@ class Main {
                                     // Move pointeiro pro fim do arquivo
                                     raf.seek(raf.length());
 
-                                    d.updateItem(novoAnime.getId(), raf.length());
+                                    d.updateItem(novoAnime.getId(), raf.length()); // atualiza no hash o novo endereço
+                                    ABMais.update(novoAnime.getId(), raf.length()); // atualiza na árvore o novo
+                                                                                    // endereço
 
                                     // Escrever o novo registro
                                     raf.writeBoolean(false); // Lapide
@@ -312,11 +320,16 @@ class Main {
                         System.out.print("Digite o ID do anime que deseja buscar usando arvore b+: ");
                         idBuscado = scanner.nextInt();
 
-                        id_add = ABMais.read(idBuscado);
+                        Long endereco = ABMais.read(idBuscado); // buscando pela árvore
+                        if (endereco == null) {
+                            System.out.println("Registro nao encontrado");
+                            timer();
+                            break;
+                        }
 
                         // Move the file pointer to the position corresponding to the address found in
                         // the hash
-                        raf.seek(id_add);
+                        raf.seek(endereco);
 
                         animeHash = new Anime();
                         // Read the data for the anime at the specified position
@@ -338,8 +351,7 @@ class Main {
                     case 8:
                         System.out.println("Digite o nome que quer pesquisar:");
                         System.out.print(">> ");
-                        String termo = scanner.next();
-                        System.out.println(termo);
+                        String termo = c.readLine();
                         List<Key> chaves = il.getKeys(termo);
                         Anime animeList = new Anime();
                         // Read the data for the anime at the specified position
@@ -365,13 +377,20 @@ class Main {
                         timer();
                         break;
 
-                        case 9:
-                        System.out.println("Digite os generos que deseja pesquisar (separados por vírgula):");
+                    case 9:
+                        System.out.println("Digite o generos que deseja pesquisar:");
                         System.out.print(">> ");
-                        String termos = scanner.nextLine();
-                        String[] generos = termos.split(",\\s*"); // Split the input by commas and optional whitespace
-                    
-                        List<Key> chaves2 = il2.getKeys(generos);
+                        String termos = c.readLine();
+                        System.out.println(termos);
+                        String[] generos = termos.split(" "); // Split the input by spaces
+
+                        // Get keys for all genres that contain any of the specified terms
+                        List<Key> chaves2 = new ArrayList<>();
+                        List<Key> keysForTerm = il2.getKeys(generos);
+                        if (keysForTerm != null) {
+                            chaves2.addAll(keysForTerm);
+                        }
+
                         Anime animeList2 = new Anime();
                         // Read the data for the anime at the specified position
                         for (Key chave : chaves2) {
@@ -394,19 +413,61 @@ class Main {
                             }
                         }
                         timer();
-                        break;                    
+                        break;
 
                     case 10:
+                        System.out.println("Digite o nome ou os generos que deseja pesquisar:");
+                        System.out.print(">> ");
+                        termos = c.readLine();
+
+                        String[] terms = termos.split(" ");
+
+                        for (String s : terms) {
+                            System.out.println(s);
+                        }
+
+                        chaves = il.getKeys(terms[0]);
+                        chaves2 = il2.getKeys(terms);
+
+                        animeList = new Anime();
+                        for (Key chave : chaves) {
+                            for(Key chave2: chaves2){
+                                try {
+                                    long address = chave.getAddress(); // Get the address from the key
+                                    long address2 = chave2.getAddress();
+                                    if(address == address2){
+                                        raf.seek(address); // Move the file pointer to the specified address
+                                        lapide = raf.readBoolean(); // Read the marker for tombstone
+                                        if (!lapide) { // If the record is not marked as deleted
+                                            int tamRegistro = raf.readInt(); // Read the size of the record
+                                            recordData = new byte[tamRegistro]; // Create a byte array to hold the record data
+                                            raf.readFully(recordData); // Read the record data into the byte array
+                                            // Populate the Anime object with the data read from the file
+                                            animeList.fromByteArray(recordData);
+                                            System.out.println(animeList.getTitle());
+                                        } else {
+                                            System.out.println("Registro foi deletado");
+                                        }
+                                    }
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                        timer();
+                        break;
+
+                    case 11:
                         System.out.println("Imprimir hash extendido");
                         d.readFile();
                         break;
 
-                    case 11:
+                    case 12:
                         System.out.println("Imprimir ArvoreB+");
                         ABMais.imprimir();
                         break;
 
-                    case 12:
+                    case 13:
                         // CASO PRA TESTES
                         System.out.println("Sayounara...");
                         scanner.close();
@@ -444,4 +505,33 @@ class Main {
             System.err.println("Timer interrupted: " + e.getMessage());
         }
     }
+
+    public static void limpar() {
+        // Clearing case other animes have been inserted before
+        File fi = new File("anime.db");
+        File dirr = new File("dir.db");
+        File li = new File("listainvertida.db");
+        File li2 = new File("listainvertida2.db");
+        File arv = new File("arvore.db");
+        File idx = new File("index.db");
+        if (fi.length() > 0) {
+            fi.delete();
+        }
+        if (dirr.length() > 0) {
+            dirr.delete();
+        }
+        if (li2.length() > 0) {
+            li2.delete();
+        }
+        if (arv.length() > 0) {
+            arv.delete();
+        }
+        if (idx.length() > 0) {
+            idx.delete();
+        }
+        if (li.length() > 0) {
+            li.delete();
+        }
+    }
+
 }
