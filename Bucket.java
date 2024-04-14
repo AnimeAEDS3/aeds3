@@ -107,4 +107,23 @@ public class Bucket {
     public void setP(int p){
         this.p = p; //sets the bucket depth
     }
+
+    public void deleteKey(int id) {
+        for (Key k : bucket) {
+            if (k.getId() == id) {
+                bucket.remove(k);
+                break;
+            }
+        }
+    }
+
+    public void updateKey(int id, long newAddress) {
+        for (Key k : bucket) {
+            if (k.getId() == id) {
+                k.setAddress(newAddress);
+                break;
+            }
+        }
+    }
+    
 }

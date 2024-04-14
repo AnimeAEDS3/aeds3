@@ -1,4 +1,6 @@
-public class Key {
+import java.io.Serializable;
+
+public class Key implements Serializable {
     private int id;
     private long address;
 
@@ -8,6 +10,11 @@ public class Key {
     }
 
     public Key(int id, long address){ // inicializa a chave com os valores fornecidos
+        this.id = id;
+        this.address = address;
+    }
+
+    public Key(long address, int id){ // inicializa a chave com os valores fornecidos
         this.id = id;
         this.address = address;
     }
@@ -22,5 +29,13 @@ public class Key {
 
     public long getAddress(){
         return this.address; // retorna o endereço da chave
+    }
+
+    public void setAddress(long add){
+        this.address = add;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }

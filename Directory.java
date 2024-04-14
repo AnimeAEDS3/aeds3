@@ -166,7 +166,9 @@ public class Directory {
     }
 
     public void clear() {
-        file.delete(); // deletes file
+        if(file.length() > 0){
+            file.delete(); // deletes file
+        }
     }
 
     // reads and prints all of the buckets
@@ -211,5 +213,48 @@ public class Directory {
             }
         }
     }
+
+    public void deleteItem(int id) throws IOException {
+        int hashFuncValue = HashFunc(id);
+        int pos = bitExtracted(hashFuncValue, p); // which bucket
+    
+        try {
+            Bucket b = readBucket(dir.get(pos));
+            if (b.getP() < p) {
+                pos = bitExtracted(hashFuncValue, b.getP());
+                b = readBucket(dir.get(pos));
+            }
+    
+            long bucketAddress = b.getAddress();
+            if (bucketAddress != -1) {
+                b.deleteKey(id);
+                b.WriteFile(); // Update the bucket in the file
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public void updateItem(int id, long newAddress) throws IOException {
+        int hashFuncValue = HashFunc(id);
+        int pos = bitExtracted(hashFuncValue, p); // which bucket
+    
+        try {
+            Bucket b = readBucket(dir.get(pos));
+            if (b.getP() < p) {
+                pos = bitExtracted(hashFuncValue, b.getP());
+                b = readBucket(dir.get(pos));
+            }
+    
+            long bucketAddress = b.getAddress();
+            if (bucketAddress != -1) {
+                b.updateKey(id, newAddress);
+                b.WriteFile(); // Update the bucket in the file
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
 
 }
