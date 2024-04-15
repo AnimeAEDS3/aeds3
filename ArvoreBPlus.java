@@ -171,7 +171,7 @@ public class ArvoreBPlus {
         arq.seek(0);
         long raiz = arq.readLong();
         if (raiz == -1) {
-            return false; // Árvore está vazia
+            return false;
         }
         return updateRec(id, newPointer, raiz);
     }
@@ -210,7 +210,7 @@ public class ArvoreBPlus {
         arq.seek(0);
         long raiz = arq.readLong();
         if (raiz == -1) {
-            return null; // Árvore está vazia
+            return null;
         }
         return readRec(id, raiz);
     }
@@ -247,7 +247,7 @@ public class ArvoreBPlus {
         arq.seek(0);
         long raiz = arq.readLong();
         if (raiz == -1) {
-            return false;  // Árvore tá vazia, nada pra deletar.
+            return false; 
         }
     
         // Sinaliza se diminuiu a altura.
