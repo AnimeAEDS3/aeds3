@@ -2,13 +2,13 @@ import java.io.*;
 
 public class Pagina {
     public int ordem;
-    public int n;
+    public int numElementos; 
     public int[] chaves;    
     public long[] ponteirosChave;  
     public long[] filhos;
 
     public Pagina(int ord) {
-        n = 0;
+        numElementos = 0; 
         ordem = ord;
         chaves = new int[(ordem-1)];
         ponteirosChave = new long[(ordem-1)];
@@ -28,21 +28,21 @@ public class Pagina {
         DataOutputStream out = new DataOutputStream(ba);
         
         // Escreve o número de elementos atualmente na página.
-        out.writeInt(n);
+        out.writeInt(numElementos); 
         
         // Loop para escrever os dados de cada elemento: filho, chave e ponteiro da chave.
-        for (int i = 0; i < n; i++) {
+        for (int i = 0; i < numElementos; i++) { 
             out.writeLong(filhos[i]); // Escreve o ponteiro para o filho.
             out.writeInt(chaves[i]);  // Escreve a chave.
             out.writeLong(ponteirosChave[i]); // Escreve o ponteiro associado à chave.
         }
         // Escreve o ponteiro do último filho.
-        out.writeLong(filhos[n]);
+        out.writeLong(filhos[numElementos]); 
         
         // Cria um array de bytes para representar registros vazios.
         byte[] registroVazio = new byte[12]; // Considerando long (8 bytes) + int (4 bytes).
         // Preenche o espaço restante na página com registros vazios.
-        for (int i = n; i < (ordem-1); i++) {
+        for (int i = numElementos; i < (ordem-1); i++) {
             out.write(registroVazio);
             out.writeLong(filhos[i + 1]);
         }
@@ -57,7 +57,7 @@ public class Pagina {
         DataInputStream in = new DataInputStream(ba);
         
         // Lê o número de elementos presentes na página.
-        n = in.readInt();
+        numElementos = in.readInt(); 
         
         // Loop para ler os dados de cada elemento: filho, chave e ponteiro da chave.
         for (int i = 0; i < (ordem-1); i++) {
@@ -67,6 +67,5 @@ public class Pagina {
         }
         // Lê o ponteiro do último filho.
         filhos[(ordem-1)] = in.readLong();
-
     }        
 }
