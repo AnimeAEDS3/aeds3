@@ -12,9 +12,9 @@ public class ArvoreBPlus {
     public long paginaAux;
     public boolean cresceu;
     
-    public ArvoreBPlus(int o, String na) throws IOException {
-        ordem = o;
-        nomearq = na;
+    public ArvoreBPlus(int ord, String nArq) throws IOException {
+        ordem = ord;
+        nomearq = nArq;
         
         arq = new RandomAccessFile(nomearq, "rw");
         if (arq.length() < 8) 
