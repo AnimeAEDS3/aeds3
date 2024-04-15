@@ -1,5 +1,7 @@
 import java.io.*;
 
+// Escolhemos a árvore b+ pra conseguir pegar vários registros simultaneamente caso fosse necessário. Na nossa implementação não foi necessário, mas é possível.
+
 public class ArvoreBPlus {
     public static final int tamPag = 160;
 
@@ -8,7 +10,7 @@ public class ArvoreBPlus {
     public String nomearq;
     public boolean diminuiu; 
     public int chave;           // ID
-    public long ponteiroChave;          // Ponteiro para outra página
+    public long ponteiroChave;  // Ponteiro para outra página
     public long paginaAux;
     public boolean cresceu;
     

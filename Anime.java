@@ -408,7 +408,7 @@ public class Anime {
         System.out.print("Digite o titulo do anime: ");
         anime.setTitle(sc.nextLine());
 
-        System.out.print("Digite o numero de episódios: ");
+        System.out.print("Digite o numero de episodios: ");
         anime.setEpisodes(sc.nextInt());
 
         // Imprimir o objeto anime criado
@@ -425,18 +425,18 @@ public class Anime {
         System.out.println(" / ___ \\| | | | | | | | | | | _/");
         System.out.println("/_/   \\_\\_| |_|_|_| |_| |_|\\___|");
         System.out.println();
-        System.out.println("1. Carregar base de dados original");
-        System.out.println("2. Criar novo registro (CREATE)");
-        System.out.println("3. Busca por ID (READ)");
-        System.out.println("4. Deletar um registro por ID (DELETE)");
-        System.out.println("5. Update em um registro por ID (UPDATE)");
-        System.out.println("6. Pesquisa pelo index (HASH EXTENDIDO)");
+        System.out.println("1. Carregar base de dados original (TODOS)");
+        System.out.println("2. Criar novo registro (CREATE TODOS)");
+        System.out.println("3. Busca por ID (READ SEQUENCIAL)");
+        System.out.println("4. Deletar um registro por ID (DELETE TODOS)");
+        System.out.println("5. Update em um registro por ID (UPDATE TODOS)");
+        System.out.println("6. Pesquisa pelo index (HASH ESTENDIDO)");
         System.out.println("7. Pesquisa pelo index (ARVORE B+)");
         System.out.println("8. Pesquisa por palavra (LISTA INVERTIDA)");
         System.out.println("9. Pesquisa por genero (LISTA INVERTIDA)");
         System.out.println("10. Pesquisa por nome e genero (LISTA INVERTIDA)");
-        System.out.println("11. Imprimir hash extendido");
-        System.out.println("12. Imprimir Arvore B+");
+        System.out.println("11. Imprimir (HASH ESTENDIDO)");
+        System.out.println("12. Imprimir (ARVORE B+)");
         System.out.println("13. Sair");
         System.out.print(">> ");
     }

@@ -18,7 +18,6 @@ class Main {
         Console c = System.console();
 
         try (RandomAccessFile raf = new RandomAccessFile("anime.db", "rwd")) {
-
             while (loop) {
 
                 // Função da interface base do programa
@@ -29,10 +28,10 @@ class Main {
 
                     // CARREGAR BASE ORIGINAL
                     case 1:
-                        // Clearing case other animes have been inserted before
+                        // Limpando caso outros animes já tenham sido inseridos
                         d.clear();
                         limpar();
-                        // Starting
+                        // Começando caso 1
                         try (RandomAccessFile TSVRAF = new RandomAccessFile("dataanime.tsv", "rwd")) {
 
                             System.out.println("Carregando dados...");
@@ -253,8 +252,7 @@ class Main {
                                     raf.seek(raf.length());
 
                                     d.updateItem(novoAnime.getId(), raf.length()); // atualiza no hash o novo endereço
-                                    ABMais.update(novoAnime.getId(), raf.length()); // atualiza na árvore o novo
-                                                                                    // endereço
+                                    ABMais.update(novoAnime.getId(), raf.length()); // atualiza na árvore o novo endereço
 
                                     // Escrever o novo registro
                                     raf.writeBoolean(false); // Lapide
@@ -458,7 +456,7 @@ class Main {
                         break;
 
                     case 11:
-                        System.out.println("Imprimir hash extendido");
+                        System.out.println("Imprimir hash estendido");
                         d.readFile();
                         break;
 
