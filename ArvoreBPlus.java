@@ -10,7 +10,7 @@ public class ArvoreBPlus {
     public String nomearq;
     public boolean diminuiu; 
     public int chave;           // ID
-    public long ponteiroChave;  // Ponteiro para outra página
+    public long ponteiroChave;  // Ponteiro para registro no arquivo anime
     public long paginaAux;
     public boolean cresceu;
     
