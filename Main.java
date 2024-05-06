@@ -1,535 +1,515 @@
+import datastructures.*;
+import register.Anime;
+
 import java.io.*;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 
-class Main {
-
-    public static void main(String data[]) throws Exception {
-
-        // Declarando elementos importantes no escopo superior, pra reutilizar
-        int option;
-        boolean loop = true;
-        int last_id = 0;
-        long id_add;
-        InvertedList il = new InvertedList();
-        InvertedList2 il2 = new InvertedList2();
-        Directory d = new Directory("index.db");
-        ArvoreBPlus ABMais = new ArvoreBPlus(8, "arvore.db");
-        Scanner scanner = new Scanner(System.in);
-        Console c = System.console();
-
-        try (RandomAccessFile raf = new RandomAccessFile("anime.db", "rwd")) {
-            while (loop) {
-
-                // Função da interface base do programa
-                Anime.animeInterface();
-                option = scanner.nextInt();
-
-                switch (option) {
-
-                    // CARREGAR BASE ORIGINAL
-                    case 1:
-                        // Limpando caso outros animes já tenham sido inseridos
-                        d.clear();
-                        limpar();
-                        // Começando caso 1
-                        try (RandomAccessFile TSVRAF = new RandomAccessFile("dataanime.tsv", "rwd")) {
-
-                            System.out.println("Carregando dados...");
-
-                            // Pulando header do arquivo original
-                            String header = TSVRAF.readLine();
-
-                            raf.seek(0);
-                            raf.writeInt(0); // reservando os 4 primeiros bytes para o último id
-
-                            // Recebendo inputs do tsv
-                            String line;
-                            while ((line = TSVRAF.readLine()) != null) {
-                                // Função de extração dos dados do tsv
-                                Anime anime = Anime.fromStringArray(line.split("\t"));
-
-                                byte[] ba = anime.toByteArray(); // Objeto convertido em array de bytes
-
-                                // Adiciona no hash
-                                d.AddItem(anime.getId(), raf.getFilePointer());
-
-                                // Adiciona na lista
-                                Key k = new Key();
-                                k.setAddress(raf.getFilePointer());
-                                k.setId(anime.getId());
-                                il.addKey(anime.getTitle(), k);
-                                il2.addKey(anime.getGenres(), k);
-
-                                // Adiciona na ArvoreB+
-                                ABMais.create(anime.getId(), raf.getFilePointer());
-
-                                raf.writeBoolean(false); // Escrevendo a lápide antes do indicador de tamanho
-                                raf.writeInt(ba.length); // Indicador de tamanho
-                                raf.write(ba);
-
-                                last_id = anime.getId();
-
-                            }
-                            raf.seek(0);
-                            raf.writeInt(last_id);
-                            d.saveDirectory();
-                            TSVRAF.close();
-
-                        } catch (IOException e) {
-                            System.err.println("Erro ao ler arquivo: " + e.getMessage());
-                            e.printStackTrace(); // Adicionado para obter mais informações sobre o erro
-                        }
-                        break;
-
-                    // ADICIONAR NOVO REGISTRO
-                    case 2:
-                        // Acessando o último id inserido
-                        raf.seek(0);
-                        int newId = raf.readInt() + 1;
-
-                        Anime a = Anime.promptUser(newId);
-                        a.setId(newId);
-
-                        // Definir a posição de escrita no final do arquivo
-                        raf.seek(raf.length());
-                        d.AddItem(a.getId(), raf.getFilePointer()); // Inserindo no hash
-                        ABMais.create(a.getId(), raf.getFilePointer()); // Inserindo na arvore
-
-                        // Gravar o novo registro
-                        raf.writeBoolean(false); // lapideRead
-                        byte[] recordData = a.toByteArray();
-                        raf.writeInt(recordData.length); // Tamanho do registro
-                        raf.write(recordData); // Dados do registro
-
-                        // Atualizar o último ID inserido
-                        raf.seek(0);
-                        raf.writeInt(newId);
-
-                        System.out.println("Novo registro criado!");
-                        timer();
-                        break;
-
-                    case 3:
-                        // Código para ler um ID e imprimir as informações do objeto
-                        System.out.print("Digite o ID do anime que deseja buscar: ");
-
-                        int idBuscado = scanner.nextInt();
-
-                        int tamRegistroRead;
-                        boolean lapideRead;
-                        boolean encontradoRead = false;
-
-                        raf.seek(0);
-                        raf.readInt();
-
-                        while (raf.getFilePointer() <= raf.length()) { // Enquanto existirem bytes para serem lidos
-                            lapideRead = raf.readBoolean();
-                            if (lapideRead == true) {
-                                tamRegistroRead = raf.readInt();
-                                raf.skipBytes(tamRegistroRead);
-                                continue;
-                            }
-                            // Ler indicador de tamanho
-                            tamRegistroRead = raf.readInt();
-                            recordData = new byte[tamRegistroRead];
-                            // Ler no arquivo vetor de bytes respectivo
-                            raf.readFully(recordData);
-
-                            // Transformar em objeto
-                            Anime anime = new Anime();
-                            anime.fromByteArray(recordData);
-
-                            if (anime.getId() == idBuscado) {
-                                System.out.println(anime.toString());
-                                encontradoRead = true;
-                                timer();
-                                break;
-                            }
-                        }
-
-                        if (!encontradoRead) {
-                            System.out.println("Anime com ID " + idBuscado + " não encontrado.");
-                        }
-                        break;
-
-                    // DELETANDO REGISTRO
-                    case 4:
-                        System.out.print("Digite o ID do anime que deseja remover: ");
-                        int idRemover = scanner.nextInt();
-
-                        int tamRegistroDel;
-                        boolean lapideDel;
-                        boolean encontradoDel = false;
-
-                        d.deleteItem(idRemover);
-                        ABMais.delete(idRemover);
-
-                        raf.seek(0);
-                        raf.readInt(); // ler ultimo id
-
-                        while (raf.getFilePointer() < raf.length()) {
-                            long posicaoLapide = raf.getFilePointer(); // guarda a posição da lapideRead
-                            lapideDel = raf.readBoolean();
-
-                            if (lapideDel == true) {
-                                tamRegistroDel = raf.readInt();
-                                raf.skipBytes(tamRegistroDel);
-                                continue;
-                            }
-                            // Ler indicador de tamanho
-                            tamRegistroRead = raf.readInt();
-                            recordData = new byte[tamRegistroRead];
-                            // Ler no arquivo vetor de bytes respectivo
-                            raf.readFully(recordData);
-
-                            // Transformar em objeto
-                            Anime anime = new Anime();
-                            anime.fromByteArray(recordData);
-
-                            if (anime.getId() == idRemover) {
-                                raf.seek(posicaoLapide);
-                                raf.writeBoolean(true);
-                                System.out.println(
-                                        "O anime " + anime.getTitle() + ", com ID " + idRemover + ", foi removido");
-                                timer();
-                                encontradoDel = true;
-                                break;
-                            }
-                        }
-
-                        if (!encontradoDel) {
-                            System.out.println("Anime com ID " + idRemover + " não encontrado.");
-                        }
-                        break;
-
-                    // ATUALIZAR REGISTRO POR ID
-                    case 5:
-                        System.out.print("Digite o ID do anime que deseja atualizar: ");
-                        int idAtualizar = scanner.nextInt();
-
-                        raf.seek(0);
-                        boolean encontrado = false;
-
-                        int tamRegistroAtt;
-                        boolean lapideAtt;
-
-                        raf.readInt(); // Lê o último ID pra mover o ponteiro pra parte significante
-
-                        while (raf.getFilePointer() < raf.length()) { // Enquanto o ponteiro não atingir o valor máximo
-                                                                      // no contexto
-                            long posicaoLapide = raf.getFilePointer(); // Guarda a posição da lapide
-                            lapideAtt = raf.readBoolean(); // Guarda o valor da lapide
-
-                            if (lapideAtt == true) {
-                                tamRegistroAtt = raf.readInt();
-                                raf.skipBytes(tamRegistroAtt);
-                                continue;
-                            }
-                            // Ler indicador de tamanho
-                            tamRegistroAtt = raf.readInt();
-                            recordData = new byte[tamRegistroAtt];
-                            // Ler no arquivo vetor de bytes respectivo
-                            raf.readFully(recordData);
-
-                            // Transformar em objeto
-                            Anime anime = new Anime();
-                            anime.fromByteArray(recordData);
-
-                            if (anime.getId() == idAtualizar) {
-                                Anime novoAnime = Anime.promptUser(idAtualizar); // Solicita ao usuário os novos dados
-                                novoAnime.setId(idAtualizar); // Define o mesmo ID
-
-                                byte[] novoRecordData = novoAnime.toByteArray();
-                                int novoRecordSize = novoRecordData.length;
-
-                                // Se o novo registro for maior que o registro antigo
-                                if (novoRecordSize > tamRegistroAtt) {
-                                    // Marcar o original como removido
-                                    raf.seek(posicaoLapide);
-                                    raf.writeBoolean(true);
-
-                                    // Move pointeiro pro fim do arquivo
-                                    raf.seek(raf.length());
-
-                                    d.updateItem(novoAnime.getId(), raf.length()); // atualiza no hash o novo endereço
-                                    ABMais.update(novoAnime.getId(), raf.length()); // atualiza na árvore o novo endereço
-
-                                    // Escrever o novo registro
-                                    raf.writeBoolean(false); // Lapide
-                                    raf.writeInt(novoRecordSize); // Tamanho do registro
-                                    raf.write(novoRecordData); // Novo anime
-
-                                    System.out
-                                            .println("Registro atualizado com sucesso, movido para o fim do arquivo.");
-                                    timer();
-                                    encontrado = true;
-                                } else { // Se o novo registro for <= registro antigo
-                                    // Move o ponteiro para o inicio do registro antigo
-                                    raf.seek(posicaoLapide);
-                                    // Escreve os padrões de existência do registro
-                                    raf.writeBoolean(false);
-                                    raf.writeInt(tamRegistroAtt);
-                                    // Escreve o novo registro
-                                    raf.write(novoRecordData);
-
-                                    System.out.println("Registro atualizado com sucesso, mantido no mesmo lugar.");
-                                    timer();
-                                    encontrado = true;
-                                }
-                                break;
-                            }
-
-                        }
-
-                        if (!encontrado) {
-                            System.out.println("Anime com ID " + idAtualizar + " não encontrado.");
-                            timer();
-                        }
-                        break;
-
-                    case 6:
-                        System.out.print("Digite o ID do anime que deseja buscar usando hash: ");
-                        idBuscado = scanner.nextInt();
-
-                        id_add = d.search(idBuscado);
-
-                        // Move the file pointer to the position corresponding to the address found in
-                        // the hash
-                        raf.seek(id_add);
-
-                        Anime animeHash = new Anime();
-                        // Read the data for the anime at the specified position
-                        boolean lapide = raf.readBoolean(); // Read the marker for tombstone
-                        if (lapide == true) {
-                            System.out.println("Registro foi deletado");
-                        } else {
-                            int tamRegistro = raf.readInt(); // Read the size of the record
-                            recordData = new byte[tamRegistro]; // Create a byte array to hold the record data
-                            raf.readFully(recordData); // Read the record data into the byte array
-
-                            // Populate the Anime object with the data read from the file
-                            animeHash.fromByteArray(recordData);
-                            System.out.println(animeHash.toString());
-                        }
-                        timer();
-                        break;
-
-                    case 7:
-                        System.out.print("Digite o ID do anime que deseja buscar usando arvore b+: ");
-                        idBuscado = scanner.nextInt();
-
-                        Long endereco = ABMais.read(idBuscado); // buscando pela árvore
-                        if (endereco == null) {
-                            System.out.println("Registro nao encontrado");
-                            timer();
-                            break;
-                        }
-
-                        // Move the file pointer to the position corresponding to the address found in
-                        // the hash
-                        raf.seek(endereco);
-
-                        animeHash = new Anime();
-                        // Read the data for the anime at the specified position
-                        lapide = raf.readBoolean(); // Read the marker for tombstone
-                        if (lapide == true) {
-                            System.out.println("Registro foi deletado");
-                        } else {
-                            int tamRegistro = raf.readInt(); // Read the size of the record
-                            recordData = new byte[tamRegistro]; // Create a byte array to hold the record data
-                            raf.readFully(recordData); // Read the record data into the byte array
-
-                            // Populate the Anime object with the data read from the file
-                            animeHash.fromByteArray(recordData);
-                            System.out.println(animeHash.toString());
-                        }
-                        timer();
-                        break;
-
-                    case 8:
-                        System.out.println("Digite o nome que quer pesquisar:");
-                        System.out.print(">> ");
-                        String termo = c.readLine();
-                        List<Key> chaves = il.getKeys(termo);
-                        Anime animeList = new Anime();
-                        // Read the data for the anime at the specified position
-                        for (Key chave : chaves) {
-                            try {
-                                long address = chave.getAddress(); // Get the address from the key
-                                raf.seek(address); // Move the file pointer to the specified address
-                                lapide = raf.readBoolean(); // Read the marker for tombstone
-                                if (!lapide) { // If the record is not marked as deleted
-                                    int tamRegistro = raf.readInt(); // Read the size of the record
-                                    recordData = new byte[tamRegistro]; // Create a byte array to hold the record data
-                                    raf.readFully(recordData); // Read the record data into the byte array
-                                    // Populate the Anime object with the data read from the file
-                                    animeList.fromByteArray(recordData);
-                                    System.out.println(animeList.getTitle());
-                                } else {
-                                    System.out.println("Registro foi deletado");
-                                }
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        timer();
-                        break;
-
-                    case 9:
-                        System.out.println("Digite o generos que deseja pesquisar:");
-                        System.out.print(">> ");
-                        String termos = c.readLine();
-                        System.out.println(termos);
-                        String[] generos = termos.split(" "); // Split the input by spaces
-
-                        // Get keys for all genres that contain any of the specified terms
-                        List<Key> chaves2 = new ArrayList<>();
-                        List<Key> keysForTerm = il2.getKeys(generos);
-                        if (keysForTerm != null) {
-                            chaves2.addAll(keysForTerm);
-                        }
-
-                        Anime animeList2 = new Anime();
-                        // Read the data for the anime at the specified position
-                        for (Key chave : chaves2) {
-                            try {
-                                long address = chave.getAddress(); // Get the address from the key
-                                raf.seek(address); // Move the file pointer to the specified address
-                                lapide = raf.readBoolean(); // Read the marker for tombstone
-                                if (!lapide) { // If the record is not marked as deleted
-                                    int tamRegistro = raf.readInt(); // Read the size of the record
-                                    recordData = new byte[tamRegistro]; // Create a byte array to hold the record data
-                                    raf.readFully(recordData); // Read the record data into the byte array
-                                    // Populate the Anime object with the data read from the file
-                                    animeList2.fromByteArray(recordData);
-                                    System.out.println(animeList2.getTitle());
-                                } else {
-                                    System.out.println("Registro foi deletado");
-                                }
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        timer();
-                        break;
-
-                    case 10:
-                        System.out.println("Digite o nome ou os generos que deseja pesquisar:");
-                        System.out.print(">> ");
-                        termos = c.readLine();
-
-                        String[] terms = termos.split(" ");
-
-                        for (String s : terms) {
-                            System.out.println(s);
-                        }
-
-                        chaves = il.getKeys(terms[0]);
-                        chaves2 = il2.getKeys(terms);
-
-                        animeList = new Anime();
-                        for (Key chave : chaves) {
-                            for(Key chave2: chaves2){
-                                try {
-                                    long address = chave.getAddress(); // Get the address from the key
-                                    long address2 = chave2.getAddress();
-                                    if(address == address2){
-                                        raf.seek(address); // Move the file pointer to the specified address
-                                        lapide = raf.readBoolean(); // Read the marker for tombstone
-                                        if (!lapide) { // If the record is not marked as deleted
-                                            int tamRegistro = raf.readInt(); // Read the size of the record
-                                            recordData = new byte[tamRegistro]; // Create a byte array to hold the record data
-                                            raf.readFully(recordData); // Read the record data into the byte array
-                                            // Populate the Anime object with the data read from the file
-                                            animeList.fromByteArray(recordData);
-                                            System.out.println(animeList.getTitle());
-                                        } else {
-                                            System.out.println("Registro foi deletado");
-                                        }
-                                    }
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        }
-                        timer();
-                        break;
-
-                    case 11:
-                        System.out.println("Imprimir hash estendido");
-                        d.readFile();
-                        break;
-
-                    case 12:
-                        System.out.println("Imprimir ArvoreB+");
-                        ABMais.imprimir();
-                        break;
-
-                    case 13:
-                        // CASO PRA TESTES
-                        System.out.println("Sayounara...");
-                        scanner.close();
-                        loop = false;
-                        break;
-
-                    default:
-                        loop = false;
-                        scanner.close();
-
-                }
-            }
-            d.saveDirectory();
-            il.saveToFile();
-            il2.saveToFile();
-            raf.close();
-
-            // Catching errors
-        } catch (FileNotFoundException e) {
-            System.err.println("Arquivo não encontrado: " + e.getMessage());
-        } catch (IOException e) {
-            System.err.println("Erro ao ler arquivo: " + e.getMessage());
-        } catch (NumberFormatException e) {
-            System.err.println("Erro de formatação numérico: " + e.getMessage());
-        } catch (InputMismatchException e) {
-            System.err.println("Esperado um inteiro.");
-        }
+public class Main {
+
+    private static final String DB_FILE_NAME = "anime.db";
+    private static final String INDEX_FILE_NAME = "index.db";
+    private static final String TSV_FILE_NAME = "dataanime.tsv";
+    private static final int SLEEP_TIME_MS = 2000; // 2000 milliseconds = 2 seconds
+
+    private RandomAccessFile raf;
+    private Scanner scanner;
+    private Console console;
+
+    private InvertedListName il;
+    private InvertedListGenre il2;
+    private Directory directory;
+    private ArvoreBPlus arvoreBPlus;
+
+    public Main() throws IOException {
+        setup();
     }
 
-    public static void timer() {
-        // Timer pra dar tempo de ler uma informação
+    private void setup() throws IOException {
+        raf = new RandomAccessFile(DB_FILE_NAME, "rwd");
+        scanner = new Scanner(System.in);
+        console = System.console();
+
+        il = new InvertedListName();
+        il2 = new InvertedListGenre();
+        directory = new Directory(INDEX_FILE_NAME);
+        arvoreBPlus = new ArvoreBPlus(8, "arvore.db");
+    }
+
+    public static void main(String[] args) {
         try {
-            Thread.sleep(2000); // 2000 milliseconds = 2 segundos
+            Main mainApp = new Main();
+            mainApp.run();
+        } catch (Exception e) {
+            System.err.println("An error occurred: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void run() throws IOException {
+        boolean loop = true;
+        while (loop) {
+            Anime.animeInterface();
+            int option = scanner.nextInt();
+            switch (option) {
+                case 1:
+                    loadOriginalBase();
+                    break;
+                case 2:
+                    addNewRecord();
+                    break;
+                case 3:
+                    findRecordByID();
+                    break;
+                case 4:
+                    deleteRecord();
+                    break;
+                case 5:
+                    updateRecord();
+                    break;
+                case 6:
+                    searchUsingHash();
+                    break;
+                case 7:
+                    searchUsingBTree();
+                    break;
+                case 8:
+                    searchByTitle();
+                    break;
+                case 9:
+                    searchByGenres();
+                    break;
+                case 10:
+                    directory.readFile();
+                    break;
+                case 11:
+                    arvoreBPlus.imprimir();
+                    break;
+                case 12:
+                    loop = false;
+                    System.out.println("Adeus...");
+                    break;
+                default:
+                    loop = false;
+                    System.out.println("Opçao invalida...");
+                    break;
+            }
+        }
+
+        scanner.close();
+    }
+
+    private void saveAndClose() throws IOException {
+        directory.saveDirectory();
+        il.saveToFile();
+        il2.saveToFile();
+        raf.close();
+    }
+
+    private void timer() {
+        try {
+            Thread.sleep(SLEEP_TIME_MS);
         } catch (InterruptedException e) {
-            System.err.println("Timer interrupted: " + e.getMessage());
+            Thread.currentThread().interrupt();
+            System.err.println("Timer interrompido: " + e.getMessage());
         }
     }
 
-    public static void limpar() {
-        // Clearing case other animes have been inserted before
-        File fi = new File("anime.db");
-        File dirr = new File("dir.db");
-        File li = new File("listainvertida.db");
-        File li2 = new File("listainvertida2.db");
-        File arv = new File("arvore.db");
-        File idx = new File("index.db");
-        if (fi.length() > 0) {
-            fi.delete();
-        }
-        if (dirr.length() > 0) {
-            dirr.delete();
-        }
-        if (li2.length() > 0) {
-            li2.delete();
-        }
-        if (arv.length() > 0) {
-            arv.delete();
-        }
-        if (idx.length() > 0) {
-            idx.delete();
-        }
-        if (li.length() > 0) {
-            li.delete();
+    private void loadOriginalBase() throws IOException {
+        // Limpa os arquivos existentes para garantir um estado limpo
+        limpar();
+        try (RandomAccessFile TSVRAF = new RandomAccessFile(TSV_FILE_NAME, "rwd")) {
+            System.out.println("Carregando dados...");
+            TSVRAF.readLine(); // Pulando header do arquivo original
+            raf.seek(0);
+            raf.writeInt(0); // reservando os 4 primeiros bytes para o último id
+            String line;
+            int last_id = 0;
+            while ((line = TSVRAF.readLine()) != null) {
+                Anime anime = Anime.fromStringArray(line.split("\t"));
+                addAnimeRecord(anime);
+                last_id = anime.getId();
+            }
+            raf.seek(0);
+            raf.writeInt(last_id);
+            directory.saveDirectory();
+            saveAndClose();
         }
     }
 
+    private void addAnimeRecord(Anime anime) throws IOException {
+        byte[] ba = anime.toByteArray();
+        long filePointer = raf.getFilePointer();
+        raf.writeBoolean(false); // Escrevendo a lápide antes do indicador de tamanho
+        raf.writeInt(ba.length); // Indicador de tamanho
+        raf.write(ba); // Dados do anime
+
+        directory.AddItem(anime.getId(), filePointer);
+        il.addKey(anime.getTitle(), new Key(filePointer, anime.getId()));
+        il2.addKey(anime.getGenres(), new Key(filePointer, anime.getId()));
+        arvoreBPlus.create(anime.getId(), filePointer);
+    }
+
+    private void addNewRecord() throws IOException {
+        raf.seek(0);
+        int newId = raf.readInt() + 1;
+        Anime anime = Anime.promptUser(newId);
+        anime.setId(newId);
+        addAnimeRecord(anime);
+        raf.seek(0);
+        raf.writeInt(newId);
+        System.out.println("Novo registro criado!");
+        timer();
+    }
+
+    private void findRecordByID() throws IOException {
+        // Solicita ao usuário que digite o ID do anime que deseja buscar
+        System.out.print("Digite o ID do anime que deseja buscar: ");
+        int searchedID = scanner.nextInt();
+
+        int recordSize;
+        boolean isDeleted;
+        boolean found = false;
+
+        raf.seek(0);
+        raf.readInt(); // Le e descarta o inteiro inicial se nao for utilizado em outro lugar
+
+        // Enquanto houver bytes para serem lidos
+        while (raf.getFilePointer() < raf.length()) {
+            isDeleted = raf.readBoolean(); // Le o marcador de exclusao
+            if (isDeleted) {
+                recordSize = raf.readInt(); // Le o tamanho do registro excluído
+                raf.skipBytes(recordSize); // Pula o registro inteiro
+                continue;
+            }
+
+            // Le o tamanho do próximo registro
+            recordSize = raf.readInt();
+            byte[] recordData = new byte[recordSize];
+            // Le os dados reais do registro
+            raf.readFully(recordData);
+
+            // Desserializa os dados em um objeto Anime
+            Anime anime = new Anime();
+            anime.fromByteArray(recordData);
+
+            // Verifica se o ID do anime corresponde ao ID procurado
+            if (anime.getId() == searchedID) {
+                System.out.println(anime.toString());
+                found = true;
+                break; // Sai do loop se o anime for encontrado
+            }
+        }
+
+        // Se o anime nao for encontrado após a leitura de todos os registros
+        if (!found) {
+            System.out.println("Anime com ID " + searchedID + " nao encontrado.");
+        }
+        timer(); // Chama um temporizador para uma pequena pausa
+    }
+
+    private void deleteRecord() throws IOException {
+        // Solicita ao usuário que digite o ID do anime que deseja remover
+        System.out.print("Digite o ID do anime que deseja remover: ");
+        int idRemover = scanner.nextInt();
+
+        int tamRegistroDel;
+        boolean lapideDel;
+        boolean encontradoDel = false;
+
+        // Remove o item dos índices
+        directory.deleteItem(idRemover);
+        arvoreBPlus.delete(idRemover);
+
+        // Move o ponteiro para o início dos registros
+        raf.seek(0);
+        raf.readInt(); // Le o último ID
+
+        // Percorre os registros no arquivo
+        while (raf.getFilePointer() < raf.length()) {
+            // Guarda a posiçao da lapide
+            long posicaoLapide = raf.getFilePointer();
+            // Le o valor da lapide
+            lapideDel = raf.readBoolean();
+
+            // Se o registro estiver marcado como removido, avança para o próximo registro
+            if (lapideDel) {
+                tamRegistroDel = raf.readInt();
+                raf.skipBytes(tamRegistroDel);
+                continue;
+            }
+            // Le o indicador de tamanho do registro
+            tamRegistroDel = raf.readInt();
+            byte[] recordData = new byte[tamRegistroDel];
+            // Le os dados do registro
+            raf.readFully(recordData);
+
+            // Transforma os dados do registro em um objeto Anime
+            Anime anime = new Anime();
+            anime.fromByteArray(recordData);
+
+            // Verifica se o ID do anime corresponde ao ID informado pelo usuário
+            if (anime.getId() == idRemover) {
+                // Marca o registro como removido
+                raf.seek(posicaoLapide);
+                raf.writeBoolean(true);
+                System.out.println("O anime " + anime.getTitle() + ", com ID " + idRemover + ", foi removido");
+                timer();
+                encontradoDel = true;
+                break;
+            }
+        }
+
+        // Se o registro nao foi encontrado, exibe uma mensagem ao usuário
+        if (!encontradoDel) {
+            System.out.println("Anime com ID " + idRemover + " nao encontrado.");
+        }
+    }
+
+    private void updateRecord() throws IOException {
+        // Solicita ao usuário que digite o ID do anime que deseja atualizar
+        System.out.print("Digite o ID do anime que deseja atualizar: ");
+        int idAtualizar = scanner.nextInt();
+
+        // Inicializa variáveis para controle do processo de atualizaçao
+        boolean encontrado = false;
+        int tamRegistroAtt;
+        boolean lapideAtt;
+        byte[] recordData;
+
+        // Move o ponteiro para o início do arquivo e le o último ID
+        raf.seek(0);
+        raf.readInt();
+
+        // Percorre os registros no arquivo
+        while (raf.getFilePointer() < raf.length()) {
+            // Guarda a posiçao da lapide
+            long posicaoLapide = raf.getFilePointer();
+            // Le o valor da lapide
+            lapideAtt = raf.readBoolean();
+
+            // Se o registro estiver marcado como removido, avança para o próximo registro
+            if (lapideAtt) {
+                tamRegistroAtt = raf.readInt();
+                raf.skipBytes(tamRegistroAtt);
+                continue;
+            }
+
+            // Le o indicador de tamanho do registro
+            tamRegistroAtt = raf.readInt();
+            // Le os dados do registro
+            recordData = new byte[tamRegistroAtt];
+            raf.readFully(recordData);
+
+            // Transforma os dados do registro em um objeto Anime
+            Anime anime = new Anime();
+            anime.fromByteArray(recordData);
+
+            // Verifica se o ID do anime corresponde ao ID informado pelo usuário
+            if (anime.getId() == idAtualizar) {
+                // Solicita ao usuário os novos dados do anime
+                Anime novoAnime = Anime.promptUser(idAtualizar);
+                // Define o mesmo ID para o novo anime
+                novoAnime.setId(idAtualizar);
+
+                // Converte o novo registro em um array de bytes
+                byte[] novoRecordData = novoAnime.toByteArray();
+                int novoRecordSize = novoRecordData.length;
+
+                // Verifica se o novo registro é maior que o registro existente
+                if (novoRecordSize > tamRegistroAtt) {
+                    // Marca o registro original como removido
+                    raf.seek(posicaoLapide);
+                    raf.writeBoolean(true);
+
+                    // Move o ponteiro para o fim do arquivo
+                    raf.seek(raf.length());
+
+                    // Escreve o novo registro no final do arquivo
+                    raf.writeBoolean(false); // Lapide
+                    raf.writeInt(novoRecordSize); // Tamanho do registro
+                    raf.write(novoRecordData); // Novo anime
+
+                    // Atualiza o endereço do registro nos índices
+                    directory.updateItem(novoAnime.getId(), raf.length());
+                    arvoreBPlus.update(novoAnime.getId(), raf.length());
+
+                    System.out.println("Registro atualizado com sucesso, movido para o fim do arquivo.");
+                    timer();
+                } else { // Se o novo registro é menor ou igual ao registro existente
+                    // Move o ponteiro para o início do registro existente
+                    raf.seek(posicaoLapide);
+                    // Escreve os dados do novo registro sobre o registro existente
+                    raf.writeBoolean(false); // Marca como existente
+                    raf.writeInt(tamRegistroAtt); // Tamanho do registro
+                    raf.write(novoRecordData); // Novos dados do anime
+
+                    System.out.println("Registro atualizado com sucesso, mantido no mesmo lugar.");
+                    timer();
+                }
+                encontrado = true;
+                break; // Sai do loop após encontrar o registro
+            }
+        }
+
+        // Se o registro nao foi encontrado, exibe uma mensagem ao usuário
+        if (!encontrado) {
+            System.out.println("Anime com ID " + idAtualizar + " nao encontrado.");
+            timer();
+        }
+    }
+
+    private void searchUsingHash() throws IOException {
+        System.out.print("Digite o ID do anime que deseja buscar usando hash: ");
+        int idBuscado = scanner.nextInt();
+
+        long address = directory.search(idBuscado);
+        if (address != -1) {
+            readAndDisplayAnime(address);
+        } else {
+            System.out.println("Anime com ID " + idBuscado + " nao encontrado.");
+        }
+        timer();
+    }
+
+    private void searchUsingBTree() throws IOException {
+        System.out.print("Digite o ID do anime que deseja buscar usando arvore b+: ");
+        int idBuscado = scanner.nextInt();
+
+        Long address = arvoreBPlus.read(idBuscado);
+        if (address != null) {
+            readAndDisplayAnime(address);
+        } else {
+            System.out.println("Registro nao encontrado");
+        }
+        timer();
+    }
+
+    private void readAndDisplayAnime(long address) throws IOException {
+        raf.seek(address);
+        boolean lapide = raf.readBoolean();
+        if (lapide) {
+            System.out.println("Registro foi deletado");
+        } else {
+            int tamRegistro = raf.readInt();
+            byte[] recordData = new byte[tamRegistro];
+            raf.readFully(recordData);
+            Anime anime = new Anime();
+            anime.fromByteArray(recordData);
+            System.out.println(anime.getTitle() + " -> Id: " + anime.getId() + " -> Score:" + anime.getScore());
+        }
+    }
+
+    private void limpar() {
+        // Limpa todos os arquivos relacionados
+        System.out.println(">> Resetando base de dados!");
+        deleteFile(DB_FILE_NAME);
+        deleteFile(INDEX_FILE_NAME);
+        deleteFile("dir.db");
+        deleteFile("invertedListName.db");
+        deleteFile("invertedListGenre.db");
+        deleteFile("arvore.db");
+    }
+
+    public static void deleteFile(String fileName) {
+        File file = new File(fileName);
+        if (file.exists()) {
+            try (FileChannel channel = FileChannel.open(file.toPath(), StandardOpenOption.WRITE)) {
+                FileLock lock = channel.tryLock();
+                if (lock != null) {
+                    file.delete();
+                    System.out.println("File deleted: " + fileName);
+                } else {
+                    System.out.println("File is in use: " + fileName);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void searchByTitle() throws IOException {
+        // Solicita ao usuário o nome que deseja pesquisar
+        System.out.println("Digite o nome que quer pesquisar:");
+        System.out.print(">> ");
+        String termo = console.readLine();
+        // Busca os animes pelo termo de pesquisa no título
+        List<Anime> animeList = searchByTerm(termo, il);
+        // Exibe a lista de animes encontrados
+        displayAnimeList(animeList);
+    }
+
+    private void searchByGenres() throws IOException {
+        // Solicita ao usuário os generos que deseja pesquisar
+        System.out.println("Digite os generos que deseja pesquisar:");
+        System.out.print(">> ");
+        String termos = console.readLine();
+        String[] generos = termos.split(" ");
+        // Busca os animes pelos generos informados
+        List<Anime> animeList = searchByTerm(generos, il2);
+        // Exibe a lista de animes encontrados
+        displayAnimeList(animeList);
+    }
+
+    private List<Anime> searchByTerm(String termo, InvertedListName il) throws IOException {
+        List<Anime> animeList = new ArrayList<>();
+        // Obtém as chaves de busca para o termo informado
+        List<Key> chaves = il.getKeys(termo);
+        for (Key chave : chaves) {
+            try {
+                long address = chave.getAddress(); // Obtém o endereço do registro
+                raf.seek(address); // Move o ponteiro do arquivo para o endereço especificado
+                boolean lapide = raf.readBoolean(); // Le o marcador de lápide
+                if (!lapide) { // Se o registro não estiver marcado como deletado
+                    int tamRegistro = raf.readInt(); // Le o tamanho do registro
+                    byte[] recordData = new byte[tamRegistro]; // Cria um array de bytes para armazenar os dados do registro
+                    raf.readFully(recordData); // Le os dados do registro para o array de bytes
+                    // Preenche o objeto Anime com os dados lidos do arquivo
+                    Anime anime = new Anime();
+                    anime.fromByteArray(recordData);
+                    animeList.add(anime);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return animeList;
+    }
+
+    private List<Anime> searchByTerm(String[] terms, InvertedListGenre il) throws IOException {
+        List<Anime> animeList = new ArrayList<>();
+        List<Key> chaves = il.getKeys(terms);
+        for (Key chave : chaves) {
+            try {
+                long address = chave.getAddress(); // Obtém o endereço do registro
+                raf.seek(address); // Move o ponteiro do arquivo para o endereço especificado
+                boolean lapide = raf.readBoolean(); // Le o marcador de lápide
+                if (!lapide) { // Se o registro não estiver marcado como deletado
+                    int tamRegistro = raf.readInt(); // Le o tamanho do registro
+                    byte[] recordData = new byte[tamRegistro]; // Cria um array de bytes para armazenar os dados do registro
+                    raf.readFully(recordData); // Le os dados do registro para o array de bytes
+                    // Preenche o objeto Anime com os dados lidos do arquivo
+                    Anime anime = new Anime();
+                    anime.fromByteArray(recordData);
+                    animeList.add(anime);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return animeList;
+    }
+
+    private void displayAnimeList(List<Anime> animeList) {
+        if (animeList.isEmpty()) {
+            System.out.println("Nenhum anime encontrado.");
+        } else {
+            for (Anime anime : animeList) {
+                System.out.println(anime.getTitle() + " -> Id: " + anime.getId() + " -> Score: " + anime.getScore());
+            }
+        }
+        timer();
+    }
 }

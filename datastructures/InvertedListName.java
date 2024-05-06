@@ -1,18 +1,20 @@
+package datastructures;
+
 import java.io.*;
 import java.util.*;
 
-public class InvertedList implements Serializable {
+public class InvertedListName implements Serializable {
     private Map<String, List<Key>> invertedIndex;
 
-    public InvertedList() throws IOException {
+    public InvertedListName() throws IOException {
         invertedIndex = new HashMap<>();
-        RandomAccessFile raf = new RandomAccessFile("listainvertida.db","rw");
+        RandomAccessFile raf = new RandomAccessFile("invertedListName.db","rw");
         if (raf.length() > 0) {
             try {
-                InvertedList loadedList = loadFromFile();
+                InvertedListName loadedList = loadFromFile();
                 this.invertedIndex = loadedList.invertedIndex;
             } catch (IOException | ClassNotFoundException e) {
-                System.err.println("Error loading InvertedList from file: " + e.getMessage());
+                System.err.println("Error loading InvertedListName from file: " + e.getMessage());
             }
         }
     }
@@ -53,18 +55,16 @@ public class InvertedList implements Serializable {
     }
 
     public void saveToFile() throws IOException {
-        File file = new File("listainvertida.db");
+        File file = new File("invertedListName.db");
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
             oos.writeObject(this);
         }
     }
     
-    public static InvertedList loadFromFile() throws IOException, ClassNotFoundException {
-        File file = new File("listainvertida.db");
+    public static InvertedListName loadFromFile() throws IOException, ClassNotFoundException {
+        File file = new File("invertedListName.db");
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
-            return (InvertedList) ois.readObject();
+            return (InvertedListName) ois.readObject();
         }
     }
-    
-    
 }

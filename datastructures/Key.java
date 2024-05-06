@@ -1,3 +1,5 @@
+package datastructures;
+
 import java.io.Serializable;
 
 public class Key implements Serializable {

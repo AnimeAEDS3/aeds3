@@ -1,3 +1,5 @@
+package register;
+
 import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -434,10 +436,9 @@ public class Anime {
         System.out.println("7. Pesquisa pelo index (ARVORE B+)");
         System.out.println("8. Pesquisa por palavra (LISTA INVERTIDA)");
         System.out.println("9. Pesquisa por genero (LISTA INVERTIDA)");
-        System.out.println("10. Pesquisa por nome e genero (LISTA INVERTIDA)");
-        System.out.println("11. Imprimir (HASH ESTENDIDO)");
-        System.out.println("12. Imprimir (ARVORE B+)");
-        System.out.println("13. Sair");
+        System.out.println("10. Imprimir (HASH ESTENDIDO)");
+        System.out.println("11. Imprimir (ARVORE B+)");
+        System.out.println("12. Sair");
         System.out.print(">> ");
     }
 

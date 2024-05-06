@@ -1,3 +1,5 @@
+package datastructures;
+
 import java.io.*;
 
 // Escolhemos a árvore b+ pra conseguir pegar vários registros simultaneamente caso fosse necessário. Na nossa implementação não foi necessário, mas é possível.
@@ -577,36 +579,4 @@ public class ArvoreBPlus {
             }
         }
     }    
-    
-    public static void main(String[] args) {
-        try {
-            // Cria a árvore com ordem 3 (pode ter até 3 filhos)
-            ArvoreBPlus arvore = new ArvoreBPlus(8, "arvore.db");
-
-            // Insere alguns registros na árvore
-            System.out.println("Inserindo registros na árvore:");
-            arvore.create(1,100); //testes
-            arvore.create(2,100);
-            arvore.create(3,100);
-            arvore.create(4,100);
-            arvore.create(5,100);
-            arvore.create(6,100);
-            arvore.create(7,100);
-            arvore.create(8,100);
-            arvore.create(9,100);
-            arvore.create(10,100);
-            arvore.create(11,100);
-            arvore.create(12,100);
-            arvore.create(13,100);
-            arvore.create(14,100);
-            arvore.create(15,100);
-
-            arvore.update(2,200);
-            arvore.imprimir();
-
-        }catch (IOException e) {
-            System.err.println("Erro ao manipular a árvore B+.");
-            e.printStackTrace();
-        }
-    }
 }
