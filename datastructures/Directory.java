@@ -8,7 +8,7 @@ public class Directory {
     private RandomAccessFile fileReader;
 
     private static int p;
-    ArrayList<Long> dir = new ArrayList<Long>(); // actual directory
+    ArrayList<Long> dir = new ArrayList<>(); // actual directory
 
     public Directory(String F) throws IOException {
         this.file = new File(F); // creates the "file" file
@@ -23,18 +23,17 @@ public class Directory {
             try {
                 dir.get(i);
             } catch (Exception e) {
-                // int bit = bitExtracted(i, p-1);
                 dir.add(i, (long) -1);
             }
         }
     }
 
-    public int HashFunc(Key item) {
+    public int hashFunc(Key item) {
         int id = item.getId();
         return id % (int) Math.pow(2, p); // returns k mod 2p
     }
 
-    public int HashFunc(int id) {
+    public int hashFunc(int id) {
         return (int) (id % (Math.pow(2, p))); // returns k mod 2p
     }
 
@@ -44,7 +43,7 @@ public class Directory {
 
     public void AddItem(int id, long address) throws IOException {
         Key item = new Key(id, address); // creates key from info provided
-        int hashFuncValue = HashFunc(item); // gets the hash function value for id of item
+        int hashFuncValue = hashFunc(item); // gets the hash function value for id of item
 
         int pos = bitExtracted(hashFuncValue, p); // witch bucket
         Bucket b;
@@ -90,7 +89,7 @@ public class Directory {
         }
 
         for (Key key : keys) {
-            posKey = HashFunc(key); // redos the hash function for each of the buckets items
+            posKey = hashFunc(key); // redos the hash function for each of the buckets items
             if (pos == posKey) {
                 k1.add(key);
             } else {
@@ -100,7 +99,7 @@ public class Directory {
         }
 
         // adds the new item to correct bucket
-        posKey = HashFunc(item);
+        posKey = hashFunc(item);
         if (pos == posKey) {
             k1.add(item);
         } else {
@@ -127,7 +126,7 @@ public class Directory {
     }
 
     public long search(int id) throws FileNotFoundException {
-        int hashFuncValue = HashFunc(id);
+        int hashFuncValue = hashFunc(id);
         int pos = bitExtracted(hashFuncValue, p); // witch bucket
         long add = -1;
         Bucket b;
@@ -216,7 +215,7 @@ public class Directory {
     }
 
     public void deleteItem(int id) throws IOException {
-        int hashFuncValue = HashFunc(id);
+        int hashFuncValue = hashFunc(id);
         int pos = bitExtracted(hashFuncValue, p); // which bucket
 
         try {
@@ -237,7 +236,7 @@ public class Directory {
     }
 
     public void updateItem(int id, long newAddress) throws IOException {
-        int hashFuncValue = HashFunc(id);
+        int hashFuncValue = hashFunc(id);
         int pos = bitExtracted(hashFuncValue, p); // which bucket
 
         try {

@@ -1,5 +1,6 @@
 import datastructures.*;
 import register.Anime;
+import cryptography.Huffman;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
@@ -15,13 +16,12 @@ public class Main {
     private static final int SLEEP_TIME_MS = 2000; // 2000 milliseconds = 2 seconds
 
     private RandomAccessFile raf;
-    private Scanner scanner;
-    private Console console;
-
     private InvertedListName il;
     private InvertedListGenre il2;
     private Directory directory;
     private ArvoreBPlus arvoreBPlus;
+    private Scanner scanner;
+    private Console c;
 
     public Main() throws IOException {
         setup();
@@ -30,8 +30,7 @@ public class Main {
     private void setup() throws IOException {
         raf = new RandomAccessFile(DB_FILE_NAME, "rwd");
         scanner = new Scanner(System.in);
-        console = System.console();
-
+        c = System.console();
         il = new InvertedListName();
         il2 = new InvertedListGenre();
         directory = new Directory(INDEX_FILE_NAME);
@@ -50,9 +49,11 @@ public class Main {
 
     private void run() throws IOException {
         boolean loop = true;
+        int option;
         while (loop) {
+            Scanner scan = new Scanner(System.in);
             Anime.animeInterface();
-            int option = scanner.nextInt();
+            option = scan.nextInt();
             switch (option) {
                 case 1:
                     loadOriginalBase();
@@ -97,15 +98,14 @@ public class Main {
                     break;
             }
         }
-
         scanner.close();
+        raf.close();
     }
 
     private void saveAndClose() throws IOException {
         directory.saveDirectory();
         il.saveToFile();
         il2.saveToFile();
-        raf.close();
     }
 
     private void timer() {
@@ -134,7 +134,6 @@ public class Main {
             }
             raf.seek(0);
             raf.writeInt(last_id);
-            directory.saveDirectory();
             saveAndClose();
         }
     }
@@ -398,7 +397,7 @@ public class Main {
             raf.readFully(recordData);
             Anime anime = new Anime();
             anime.fromByteArray(recordData);
-            System.out.println(anime.getTitle() + " -> Id: " + anime.getId() + " -> Score:" + anime.getScore());
+            System.out.print(anime.getTitle() + " -> Id: " + anime.getId() + " -> Score:" + anime.getScore());
         }
     }
 
@@ -419,10 +418,10 @@ public class Main {
             try (FileChannel channel = FileChannel.open(file.toPath(), StandardOpenOption.WRITE)) {
                 FileLock lock = channel.tryLock();
                 if (lock != null) {
-                    file.delete();
-                    System.out.println("File deleted: " + fileName);
-                } else {
-                    System.out.println("File is in use: " + fileName);
+                    Boolean deleted = file.delete();
+                    if(deleted){
+                        System.out.println("File deleted: " + fileName);
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -432,20 +431,22 @@ public class Main {
 
     private void searchByTitle() throws IOException {
         // Solicita ao usuário o nome que deseja pesquisar
+        scanner = new Scanner(System.in);
         System.out.println("Digite o nome que quer pesquisar:");
         System.out.print(">> ");
-        String termo = console.readLine();
+        String termo = scanner.next();
         // Busca os animes pelo termo de pesquisa no título
         List<Anime> animeList = searchByTerm(termo, il);
         // Exibe a lista de animes encontrados
         displayAnimeList(animeList);
     }
-
+    
     private void searchByGenres() throws IOException {
         // Solicita ao usuário os generos que deseja pesquisar
+        scanner = new Scanner(System.in);
         System.out.println("Digite os generos que deseja pesquisar:");
         System.out.print(">> ");
-        String termos = console.readLine();
+        String termos = scanner.nextLine();
         String[] generos = termos.split(" ");
         // Busca os animes pelos generos informados
         List<Anime> animeList = searchByTerm(generos, il2);

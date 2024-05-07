@@ -439,7 +439,6 @@ public class Anime {
         System.out.println("10. Imprimir (HASH ESTENDIDO)");
         System.out.println("11. Imprimir (ARVORE B+)");
         System.out.println("12. Sair");
-        System.out.print(">> ");
+        System.out.print(">>");
     }
-
 }

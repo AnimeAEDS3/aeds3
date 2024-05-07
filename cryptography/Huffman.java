@@ -79,7 +79,7 @@ public class Huffman
         Node root = pq.peek();  
         //trace over the Huffman tree and store the Huffman codes in a map  
         Map<Character, String> huffmanCode = new HashMap<>();  
-        encodeData(root, "", huffmanCode);  
+        encodeData(root, "", huffmanCode);
         //print the Huffman codes for the characters  
         //System.out.println("Huffman Codes of the characters are: " + huffmanCode);  
         //prints the initial data  
