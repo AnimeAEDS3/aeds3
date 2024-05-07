@@ -419,7 +419,7 @@ public class Main {
                 FileLock lock = channel.tryLock();
                 if (lock != null) {
                     Boolean deleted = file.delete();
-                    if(deleted){
+                    if (deleted) {
                         System.out.println("File deleted: " + fileName);
                     }
                 }
@@ -431,23 +431,28 @@ public class Main {
 
     private void searchByTitle() throws IOException {
         // Solicita ao usuário o nome que deseja pesquisar
-        scanner = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in);
         System.out.println("Digite o nome que quer pesquisar:");
         System.out.print(">> ");
-        String termo = scanner.next();
+        String termo;
+        if (scanner.hasNextLine()) {
+            termo = scanner.nextLine();
+        } else {
+            termo = scanner.next();
+        }
+
         // Busca os animes pelo termo de pesquisa no título
         List<Anime> animeList = searchByTerm(termo, il);
         // Exibe a lista de animes encontrados
         displayAnimeList(animeList);
     }
-    
+
     private void searchByGenres() throws IOException {
         // Solicita ao usuário os generos que deseja pesquisar
-        scanner = new Scanner(System.in);
         System.out.println("Digite os generos que deseja pesquisar:");
         System.out.print(">> ");
         String termos = scanner.nextLine();
-        String[] generos = termos.split(" ");
+        String[] generos = termos.split(",");
         // Busca os animes pelos generos informados
         List<Anime> animeList = searchByTerm(generos, il2);
         // Exibe a lista de animes encontrados
@@ -465,7 +470,8 @@ public class Main {
                 boolean lapide = raf.readBoolean(); // Le o marcador de lápide
                 if (!lapide) { // Se o registro não estiver marcado como deletado
                     int tamRegistro = raf.readInt(); // Le o tamanho do registro
-                    byte[] recordData = new byte[tamRegistro]; // Cria um array de bytes para armazenar os dados do registro
+                    byte[] recordData = new byte[tamRegistro]; // Cria um array de bytes para armazenar os dados do
+                                                               // registro
                     raf.readFully(recordData); // Le os dados do registro para o array de bytes
                     // Preenche o objeto Anime com os dados lidos do arquivo
                     Anime anime = new Anime();
@@ -489,7 +495,8 @@ public class Main {
                 boolean lapide = raf.readBoolean(); // Le o marcador de lápide
                 if (!lapide) { // Se o registro não estiver marcado como deletado
                     int tamRegistro = raf.readInt(); // Le o tamanho do registro
-                    byte[] recordData = new byte[tamRegistro]; // Cria um array de bytes para armazenar os dados do registro
+                    byte[] recordData = new byte[tamRegistro]; // Cria um array de bytes para armazenar os dados do
+                                                               // registro
                     raf.readFully(recordData); // Le os dados do registro para o array de bytes
                     // Preenche o objeto Anime com os dados lidos do arquivo
                     Anime anime = new Anime();
@@ -504,12 +511,8 @@ public class Main {
     }
 
     private void displayAnimeList(List<Anime> animeList) {
-        if (animeList.isEmpty()) {
-            System.out.println("Nenhum anime encontrado.");
-        } else {
-            for (Anime anime : animeList) {
-                System.out.println(anime.getTitle() + " -> Id: " + anime.getId() + " -> Score: " + anime.getScore());
-            }
+        for (Anime anime : animeList) {
+            System.out.println(anime.getTitle() + " -> Id: " + anime.getId() + " -> Score: " + anime.getScore());
         }
         timer();
     }
