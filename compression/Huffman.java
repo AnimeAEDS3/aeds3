@@ -1,4 +1,4 @@
-package cryptography;
+package compression;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
