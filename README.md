@@ -1,12 +1,13 @@
-The link to the original database can be found at [Kaggle](https://www.kaggle.com/datasets/canggih/anime-data-score-staff-synopsis-and-genre)
+The link to the original Anime database can be found at [Kaggle](https://www.kaggle.com/datasets/canggih/anime-data-score-staff-synopsis-and-genre)
 
-We will be working with: 
+### We will be working with:
 
 - Data structures
-
 - Compression
-
+- Pattern searching
 - Cryptography
+
+### Run the code
 
 > cd aeds3
 
@@ -14,7 +15,7 @@ We will be working with:
 
 > java Main
 
-Docker run
+### Docker run
 
 > docker build -t my-java-app .
 
