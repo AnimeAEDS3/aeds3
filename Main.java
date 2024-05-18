@@ -12,7 +12,7 @@ public class Main {
 
     private static final String DB_FILE_NAME = "anime.db";
     private static final String INDEX_FILE_NAME = "index.db";
-    private static final String TSV_FILE_NAME = "dataanime.tsv";
+    private static final String TSV_FILE_NAME = "huffmanDataAnime.tsv";
     private static final int SLEEP_TIME_MS = 2000; // 2000 milliseconds = 2 seconds
 
     private RandomAccessFile raf;
