@@ -8,7 +8,6 @@ import java.nio.channels.FileLock;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
 
-
 public class Main {
 
     private static final String DB_FILE_NAME = "anime.db";
@@ -90,6 +89,12 @@ public class Main {
                     arvoreBPlus.imprimir();
                     break;
                 case 12:
+                    comprimirHuffman();
+                    break;
+                case 13:
+                    descomprimirHuffman();
+                    break;
+                case 14:
                     loop = false;
                     System.out.println("Adeus...");
                     break;
@@ -116,6 +121,40 @@ public class Main {
             Thread.currentThread().interrupt();
             System.err.println("Timer interrompido: " + e.getMessage());
         }
+    }
+
+    // Método para comprimir usando Huffman
+    private static void comprimirHuffman() {
+
+        // Ler dados do arquivo
+        String text = Huffman.readFile(TSV_FILE_NAME);
+
+        // Chamar função para criar a árvore de Huffman e codificar os dados
+        Huffman.createHuffmanTree(text);
+    }
+
+    // Método para descomprimir usando Huffman
+    private static void descomprimirHuffman() {
+        // Caminho do arquivo codificado
+        String encodedFilePath = "encodedHuffman.bin";
+        String decodedFilePath = "huffmanDataAnime.tsv";
+
+        // Ler bits codificados do arquivo
+        StringBuilder encodedBits = Huffman.readBitsFromFile(encodedFilePath);
+
+        // Ler dados do arquivo original para reconstruir a árvore de Huffman
+        String text = Huffman.readFile(TSV_FILE_NAME);
+
+        // Reconstruir a árvore de Huffman
+        Node root = Huffman.reconstructHuffmanTree(text);
+
+        // Decodificar os bits codificados usando a árvore de Huffman
+        String decodedText = Huffman.decodeData(root, encodedBits);
+
+        // Salvar o texto decodificado em um arquivo
+        Huffman.saveTextToFile(decodedText, decodedFilePath);
+
+        System.out.println("Texto decodificado salvo em: " + decodedFilePath);
     }
 
     private void loadOriginalBase() throws IOException {
@@ -463,7 +502,8 @@ public class Main {
                 boolean lapide = raf.readBoolean(); // Le o marcador de lápide
                 if (!lapide) { // Se o registro não estiver marcado como deletado
                     int tamRegistro = raf.readInt(); // Le o tamanho do registro
-                    byte[] recordData = new byte[tamRegistro]; // Cria um array de bytes para armazenar os dados do registro
+                    byte[] recordData = new byte[tamRegistro]; // Cria um array de bytes para armazenar os dados do
+                                                               // registro
                     raf.readFully(recordData); // Le os dados do registro para o array de bytes
                     // Preenche o objeto Anime com os dados lidos do arquivo
                     Anime anime = new Anime();
@@ -487,7 +527,8 @@ public class Main {
                 boolean lapide = raf.readBoolean(); // Le o marcador de lápide
                 if (!lapide) { // Se o registro não estiver marcado como deletado
                     int tamRegistro = raf.readInt(); // Le o tamanho do registro
-                    byte[] recordData = new byte[tamRegistro]; // Cria um array de bytes para armazenar os dados do registro
+                    byte[] recordData = new byte[tamRegistro]; // Cria um array de bytes para armazenar os dados do
+                                                               // registro
                     raf.readFully(recordData); // Le os dados do registro para o array de bytes
                     // Preenche o objeto Anime com os dados lidos do arquivo
                     Anime anime = new Anime();
