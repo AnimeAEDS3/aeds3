@@ -5,8 +5,13 @@ import compression.*;
 import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class Main {
 
@@ -108,13 +113,37 @@ public class Main {
         raf.close();
     }
 
+    private void loadOriginalBase() throws IOException {
+        limpar(); // Limpa arquivos antigos
+        setup(); // Arquivos resetados
+        try (RandomAccessFile TSVRAF = new RandomAccessFile(TSV_FILE_NAME, "rwd")) {
+            TSVRAF.readLine(); // Pulando header do arquivo original
+            raf.seek(0);
+            raf.writeInt(0); // reservando os 4 primeiros bytes para o último id
+            String line;
+            int lastId = 0;
+            long totalLines = Files.lines(Paths.get(TSV_FILE_NAME)).count() - 1; // Total de linhas excluindo header
+            long currentLine = 0;
+            while ((line = TSVRAF.readLine()) != null) {
+                Anime anime = Anime.fromStringArray(line.split("\t"));
+                addAnimeRecord(anime);
+                lastId = anime.getId();
+                currentLine++;
+                progressBar(currentLine, totalLines);
+            }
+            raf.seek(0);
+            raf.writeInt(lastId);
+            saveAndClose();
+        }
+    }
+
     private void saveAndClose() throws IOException {
         directory.saveDirectory();
         il.saveToFile();
         il2.saveToFile();
     }
 
-    private void timer() {
+    private static void timer() {
         try {
             Thread.sleep(SLEEP_TIME_MS);
         } catch (InterruptedException e) {
@@ -124,62 +153,61 @@ public class Main {
     }
 
     private static void comprimirHuffman() {
-        // Caminho do arquivo de entrada e da árvore de Huffman
         String inputFilePath = DB_FILE_NAME;
         String treeFilePath = "huffmanTree.bin";
-    
-        // Ler dados do arquivo
+        Instant start = Instant.now();
+        
         String text = Huffman.readFile(inputFilePath);
-    
-        // Chamar função para criar a árvore de Huffman e codificar os dados
         Node root = Huffman.createHuffmanTree(text);
-    
-        // Salvar a árvore de Huffman em um arquivo
         Huffman.saveTreeToFile(root, treeFilePath);
+        
+        Instant end = Instant.now();
+        long originalSize = new File(inputFilePath).length();
+        long compressedSize = new File("encodedHuffman.bin").length();
+        
+        double compressionPercentage = ((double) (originalSize - compressedSize) / originalSize) * 100;
+        Duration timeElapsed = Duration.between(start, end);
+        
+        System.out.println("Compression completed in: " + timeElapsed.toMillis() + " ms");
+        System.out.println("Number of bytes compressed: " + (originalSize - compressedSize) + " bytes");
+        System.out.println("Compression percentage: " + compressionPercentage + "%");
+        timer();
     }
-    
 
-    // Método para descomprimir usando Huffman
     private static void descomprimirHuffman() {
-        // Caminho do arquivo codificado
         String encodedFilePath = "encodedHuffman.bin";
         String decodedFilePath = "huffmanAnime.db";
-        String treeFilePath = "huffmanTree.bin"; // Caminho do arquivo da árvore de Huffman
-    
-        // Ler bits codificados do arquivo
+        String treeFilePath = "huffmanTree.bin";
+        
+        Instant start = Instant.now();
+        
         StringBuilder encodedBits = Huffman.readBitsFromFile(encodedFilePath);
-    
-        // Carregar a árvore de Huffman do arquivo
         Node root = Huffman.loadTreeFromFile(treeFilePath);
-    
-        // Decodificar os bits codificados usando a árvore de Huffman
         String decodedText = Huffman.decodeData(root, encodedBits);
-    
-        // Salvar o texto decodificado em um arquivo
         Huffman.saveTextToFile(decodedText, decodedFilePath);
-    
-        System.out.println("Texto decodificado salvo em: " + decodedFilePath);
+        
+        Instant end = Instant.now();
+        long decompressedSize = new File(decodedFilePath).length();
+        long compressedSize = new File(encodedFilePath).length();
+        
+        Duration timeElapsed = Duration.between(start, end);
+        
+        System.out.println("Decompression completed in: " + timeElapsed.toMillis() + " ms");
+        System.out.println("Compressed size: " + compressedSize + " bytes");
+        System.out.println("Decompressed size: " + decompressedSize + " bytes");
+        timer();
     }
-    
-    private void loadOriginalBase() throws IOException {
-        // Limpa os arquivos existentes para garantir um estado limpo
-        limpar();
-        try (RandomAccessFile TSVRAF = new RandomAccessFile(TSV_FILE_NAME, "rwd")) {
-            System.out.println("Carregando dados...");
-            TSVRAF.readLine(); // Pulando header do arquivo original
-            raf.seek(0);
-            raf.writeInt(0); // reservando os 4 primeiros bytes para o último id
-            String line;
-            int last_id = 0;
-            while ((line = TSVRAF.readLine()) != null) {
-                Anime anime = Anime.fromStringArray(line.split("\t"));
-                addAnimeRecord(anime);
-                last_id = anime.getId();
-            }
-            raf.seek(0);
-            raf.writeInt(last_id);
-            saveAndClose();
-        }
+
+    private void progressBar(long current, long total) {
+        int width = 25; // progress bar width in chars
+        double progress = (double) current / total;
+        int completed = (int) (progress * width);
+        StringBuilder sb = new StringBuilder();
+        sb.append('\r').append('[');
+        IntStream.range(0, completed).forEach(i -> sb.append('='));
+        IntStream.range(completed, width).forEach(i -> sb.append(' '));
+        sb.append(']').append(String.format(" %d%%", (int) (progress * 100)));
+        System.out.print(sb.toString());
     }
 
     private void addAnimeRecord(Anime anime) throws IOException {
