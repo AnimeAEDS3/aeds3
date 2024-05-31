@@ -12,7 +12,7 @@ public class Main {
 
     private static final String DB_FILE_NAME = "anime.db";
     private static final String INDEX_FILE_NAME = "index.db";
-    private static final String TSV_FILE_NAME = "huffmanDataAnime.tsv";
+    private static final String TSV_FILE_NAME = "dataanime.tsv";
     private static final int SLEEP_TIME_MS = 2000; // 2000 milliseconds = 2 seconds
 
     private RandomAccessFile raf;
@@ -123,40 +123,44 @@ public class Main {
         }
     }
 
-    // Método para comprimir usando Huffman
     private static void comprimirHuffman() {
-
+        // Caminho do arquivo de entrada e da árvore de Huffman
+        String inputFilePath = DB_FILE_NAME;
+        String treeFilePath = "huffmanTree.bin";
+    
         // Ler dados do arquivo
-        String text = Huffman.readFile(TSV_FILE_NAME);
-
+        String text = Huffman.readFile(inputFilePath);
+    
         // Chamar função para criar a árvore de Huffman e codificar os dados
-        Huffman.createHuffmanTree(text);
+        Node root = Huffman.createHuffmanTree(text);
+    
+        // Salvar a árvore de Huffman em um arquivo
+        Huffman.saveTreeToFile(root, treeFilePath);
     }
+    
 
     // Método para descomprimir usando Huffman
     private static void descomprimirHuffman() {
         // Caminho do arquivo codificado
         String encodedFilePath = "encodedHuffman.bin";
-        String decodedFilePath = "huffmanDataAnime.tsv";
-
+        String decodedFilePath = "huffmanAnime.db";
+        String treeFilePath = "huffmanTree.bin"; // Caminho do arquivo da árvore de Huffman
+    
         // Ler bits codificados do arquivo
         StringBuilder encodedBits = Huffman.readBitsFromFile(encodedFilePath);
-
-        // Ler dados do arquivo original para reconstruir a árvore de Huffman
-        String text = Huffman.readFile(TSV_FILE_NAME);
-
-        // Reconstruir a árvore de Huffman
-        Node root = Huffman.reconstructHuffmanTree(text);
-
+    
+        // Carregar a árvore de Huffman do arquivo
+        Node root = Huffman.loadTreeFromFile(treeFilePath);
+    
         // Decodificar os bits codificados usando a árvore de Huffman
         String decodedText = Huffman.decodeData(root, encodedBits);
-
+    
         // Salvar o texto decodificado em um arquivo
         Huffman.saveTextToFile(decodedText, decodedFilePath);
-
+    
         System.out.println("Texto decodificado salvo em: " + decodedFilePath);
     }
-
+    
     private void loadOriginalBase() throws IOException {
         // Limpa os arquivos existentes para garantir um estado limpo
         limpar();
@@ -434,7 +438,6 @@ public class Main {
 
     private void limpar() {
         // Limpa todos os arquivos relacionados
-        System.out.println(">> Resetando base de dados!");
         deleteFile(DB_FILE_NAME);
         deleteFile(INDEX_FILE_NAME);
         deleteFile("dir.db");
@@ -449,10 +452,7 @@ public class Main {
             try (FileChannel channel = FileChannel.open(file.toPath(), StandardOpenOption.WRITE)) {
                 FileLock lock = channel.tryLock();
                 if (lock != null) {
-                    Boolean deleted = file.delete();
-                    if (deleted) {
-                        System.out.println("File deleted: " + fileName);
-                    }
+                    file.delete();
                 }
             } catch (IOException e) {
                 e.printStackTrace();

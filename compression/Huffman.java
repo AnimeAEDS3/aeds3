@@ -1,14 +1,6 @@
 package compression;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,10 +8,10 @@ import java.util.PriorityQueue;
 
 // Classe principal para codificação e decodificação Huffman
 public class Huffman {
-    // Função para construir a árvore de Huffman
-    public static void createHuffmanTree(String text) {
+    // Função para construir a árvore de Huffman e salvar a árvore e os bits codificados
+    public static Node createHuffmanTree(String text) {
         if (text == null || text.length() == 0) {
-            return;
+            return null;
         }
 
         Map<Character, Integer> freq = new HashMap<>();
@@ -49,6 +41,7 @@ public class Huffman {
         }
 
         saveBitsToFile(sb, "encodedHuffman.bin");
+        return root;
     }
 
     // Função para codificar os dados e armazenar os códigos de Huffman em um mapa
@@ -137,25 +130,22 @@ public class Huffman {
         }
     }
 
-    // Função para reconstruir a árvore de Huffman a partir do texto original
-    public static Node reconstructHuffmanTree(String text) {
-        Map<Character, Integer> freq = new HashMap<>();
-        for (char c : text.toCharArray()) {
-            freq.put(c, freq.getOrDefault(c, 0) + 1);
+    // Função para salvar a árvore de Huffman em um arquivo
+    public static void saveTreeToFile(Node root, String filePath) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath))) {
+            oos.writeObject(root);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+    }
 
-        PriorityQueue<Node> pq = new PriorityQueue<>(Comparator.comparingInt(l -> l.freq));
-        for (var entry : freq.entrySet()) {
-            pq.add(new Node(entry.getKey(), entry.getValue()));
+    // Função para carregar a árvore de Huffman de um arquivo
+    public static Node loadTreeFromFile(String filePath) {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
+            return (Node) ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
-
-        while (pq.size() != 1) {
-            Node left = pq.poll();
-            Node right = pq.poll();
-            int sum = left.freq + right.freq;
-            pq.add(new Node(null, sum, left, right));
-        }
-
-        return pq.peek();
+        return null;
     }
 }

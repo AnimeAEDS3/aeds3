@@ -17,6 +17,6 @@ The link to the original Anime database can be found at [Kaggle](https://www.kag
 
 ### Docker run
 
-> docker build -t my-java-app .
+> docker build -t animedb-app .
 
-> docker run -it --rm my-java-app
+> docker run -it --rm animedb-app

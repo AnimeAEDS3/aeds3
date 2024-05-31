@@ -1,18 +1,21 @@
 package compression;
 
-// Classe que define os nós da árvore de Huffman
-public class Node {
-    Character ch;
-    Integer freq;
-    Node left = null;
-    Node right = null;
+import java.io.Serializable;
 
-    Node(Character ch, Integer freq) {
+// Classe Node para representar os nós da árvore de Huffman
+public class Node implements Serializable {
+    private static final long serialVersionUID = 1L;
+    
+    Character ch;
+    int freq;
+    Node left, right;
+
+    Node(Character ch, int freq) {
         this.ch = ch;
         this.freq = freq;
     }
 
-    public Node(Character ch, Integer freq, Node left, Node right) {
+    Node(Character ch, int freq, Node left, Node right) {
         this.ch = ch;
         this.freq = freq;
         this.left = left;
