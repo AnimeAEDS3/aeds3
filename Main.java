@@ -100,6 +100,12 @@ public class Main {
                     descomprimirHuffman();
                     break;
                 case 14:
+                    LZW.compressReal();
+                    break;
+                case 15:
+                    LZW.decompressReal();
+                    break;
+                case 16:
                     loop = false;
                     System.out.println("Adeus...");
                     break;
