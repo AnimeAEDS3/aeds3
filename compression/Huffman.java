@@ -6,8 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
 
-// Classe principal para codificação e decodificação Huffman
 public class Huffman {
+
     // Função para construir a árvore de Huffman e salvar a árvore e os bits codificados
     public static Node createHuffmanTree(String text) {
         if (text == null || text.length() == 0) {

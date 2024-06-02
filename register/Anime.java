@@ -442,7 +442,8 @@ public class Anime {
         System.out.println("13. Descompactar (HUFFMAN)");
         System.out.println("14. Compactar (LZW)");
         System.out.println("15. Descompactar (LZW)");
-        System.out.println("16. Sair");
+        System.out.println("16. Pesquisa por padrao (BM)");
+        System.out.println("17. Sair");
         System.out.print(">>");
     }
 }

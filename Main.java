@@ -1,4 +1,5 @@
 import datastructures.*;
+import pattern_searching.BoyerMoore;
 import register.*;
 import compression.*;
 
@@ -26,7 +27,6 @@ public class Main {
     private Directory directory;
     private ArvoreBPlus arvoreBPlus;
     private Scanner scanner;
-    private Console c;
 
     public Main() throws IOException {
         setup();
@@ -35,7 +35,6 @@ public class Main {
     private void setup() throws IOException {
         raf = new RandomAccessFile(DB_FILE_NAME, "rwd");
         scanner = new Scanner(System.in);
-        c = System.console();
         il = new InvertedListName();
         il2 = new InvertedListGenre();
         directory = new Directory(INDEX_FILE_NAME);
@@ -101,11 +100,17 @@ public class Main {
                     break;
                 case 14:
                     LZW.compressReal();
+                    timer();
                     break;
                 case 15:
                     LZW.decompressReal();
+                    timer();
                     break;
                 case 16:
+                    boyerMooreSearch();
+                    timer();
+                    break;
+                case 17:
                     loop = false;
                     System.out.println("Adeus...");
                     break;
@@ -143,6 +148,32 @@ public class Main {
         }
     }
 
+    private static void boyerMooreSearch() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Digite o padrao a ser pesquisado: ");
+        String patternStr = scanner.nextLine();
+
+        byte[] pattern = patternStr.getBytes(); // Converte a string do padrão para bytes
+
+        File file = new File(DB_FILE_NAME);
+        byte[] fileBytes = null;
+
+        try (FileInputStream fis = new FileInputStream(file)) {
+            fileBytes = new byte[(int) file.length()];
+            int bytesRead = fis.read(fileBytes);
+            if (bytesRead == -1) {
+                System.err.println("Erro ao ler o arquivo.");
+                return;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        // Executa a pesquisa
+        BoyerMoore.search(fileBytes, pattern);
+    }
+
     private void saveAndClose() throws IOException {
         directory.saveDirectory();
         il.saveToFile();
@@ -162,21 +193,21 @@ public class Main {
         String inputFilePath = DB_FILE_NAME;
         String treeFilePath = "huffmanTree.bin";
         Instant start = Instant.now();
-        
+
         String text = Huffman.readFile(inputFilePath);
         Node root = Huffman.createHuffmanTree(text);
         Huffman.saveTreeToFile(root, treeFilePath);
-        
+
         Instant end = Instant.now();
         long originalSize = new File(inputFilePath).length();
         long compressedSize = new File("encodedHuffman.bin").length();
-        
+
         double compressionPercentage = ((double) (originalSize - compressedSize) / originalSize) * 100;
         Duration timeElapsed = Duration.between(start, end);
-        
-        System.out.println("Compression completed in: " + timeElapsed.toMillis() + " ms");
-        System.out.println("Number of bytes compressed: " + (originalSize - compressedSize) + " bytes");
-        System.out.println("Compression percentage: " + compressionPercentage + "%");
+
+        System.out.println("Compressao completada em: " + timeElapsed.toMillis() + " ms");
+        System.out.println("Numero de bytes comprimidos: " + (originalSize - compressedSize) + " bytes");
+        System.out.println("Porcentagem de compressao: " + compressionPercentage + "%");
         timer();
     }
 
@@ -184,28 +215,24 @@ public class Main {
         String encodedFilePath = "encodedHuffman.bin";
         String decodedFilePath = "huffmanAnime.db";
         String treeFilePath = "huffmanTree.bin";
-        
+
         Instant start = Instant.now();
-        
+
         StringBuilder encodedBits = Huffman.readBitsFromFile(encodedFilePath);
         Node root = Huffman.loadTreeFromFile(treeFilePath);
         String decodedText = Huffman.decodeData(root, encodedBits);
         Huffman.saveTextToFile(decodedText, decodedFilePath);
-        
+
         Instant end = Instant.now();
-        long decompressedSize = new File(decodedFilePath).length();
-        long compressedSize = new File(encodedFilePath).length();
-        
+
         Duration timeElapsed = Duration.between(start, end);
-        
-        System.out.println("Decompression completed in: " + timeElapsed.toMillis() + " ms");
-        System.out.println("Compressed size: " + compressedSize + " bytes");
-        System.out.println("Decompressed size: " + decompressedSize + " bytes");
+
+        System.out.println("Decompressao completada em: " + timeElapsed.toMillis() + " ms");
         timer();
     }
 
     private void progressBar(long current, long total) {
-        int width = 25; // progress bar width in chars
+        int width = 25; // Tamanho da barra de progresso
         double progress = (double) current / total;
         int completed = (int) (progress * width);
         StringBuilder sb = new StringBuilder();
