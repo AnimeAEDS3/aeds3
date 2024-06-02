@@ -31,7 +31,7 @@ public class Anime {
     protected int numOfMembers;
     protected int numOfFavorites;
     protected String description;
-    protected char[] type; 
+    protected char[] type;
 
     /* Constructor */
 
@@ -54,7 +54,7 @@ public class Anime {
         this.numOfMembers = 0;
         this.numOfFavorites = 0;
         this.description = "-";
-        this.type = new char[2]; 
+        this.type = new char[2];
     }
 
     /* Getters e setters */
@@ -219,11 +219,11 @@ public class Anime {
         this.description = description;
     }
 
-    public char[] getType() { 
+    public char[] getType() {
         return type;
     }
 
-    public void setType(char[] type) { 
+    public void setType(char[] type) {
         this.type = type;
     }
 
@@ -281,7 +281,7 @@ public class Anime {
         dos.writeInt(numOfMembers);
         dos.writeInt(numOfFavorites);
         dos.writeUTF(description);
-        writeCharArray(dos, type); 
+        writeCharArray(dos, type);
 
         return baos.toByteArray();
     }
@@ -295,7 +295,7 @@ public class Anime {
         }
     }
 
-    private static void writeCharArray(DataOutputStream dos, char[] array) throws IOException { 
+    private static void writeCharArray(DataOutputStream dos, char[] array) throws IOException {
         dos.writeInt(array.length);
         for (char element : array) {
             dos.writeChar(element);
@@ -325,7 +325,7 @@ public class Anime {
         numOfMembers = dis.readInt();
         numOfFavorites = dis.readInt();
         description = dis.readUTF();
-        type = readCharArray(dis); 
+        type = readCharArray(dis);
     }
 
     private String[] readStringArray(DataInputStream dis) throws IOException {
@@ -337,7 +337,7 @@ public class Anime {
         return array;
     }
 
-    private char[] readCharArray(DataInputStream dis) throws IOException { 
+    private char[] readCharArray(DataInputStream dis) throws IOException {
         int length = dis.readInt();
         char[] array = new char[length];
         for (int i = 0; i < length; i++) {
@@ -370,7 +370,7 @@ public class Anime {
                 ", numOfMembers=" + numOfMembers +
                 ", numOfFavorites=" + numOfFavorites +
                 ", description='" + description + '\'' +
-                ", type=" + Arrays.toString(type) + 
+                ", type=" + Arrays.toString(type) +
                 '}';
     }
 
@@ -397,7 +397,7 @@ public class Anime {
         anime.setNumOfMembers(!values[17].equals("-") ? Integer.parseInt(values[17]) : anime.getNumOfMembers());
         anime.setNumOfFavorites(!values[18].equals("-") ? Integer.parseInt(values[18]) : anime.getNumOfFavorites());
         anime.setDescription(values[19]);
-        anime.setType(values[20].toCharArray()); 
+        anime.setType(values[20].toCharArray());
 
         return anime;
     }
@@ -426,7 +426,13 @@ public class Anime {
         System.out.println("  / _ \\ | '_ \\| | '_ ` _ \\ / _ \\");
         System.out.println(" / ___ \\| | | | | | | | | | | _/");
         System.out.println("/_/   \\_\\_| |_|_|_| |_| |_|\\___|");
+        System.out.println("          ____  ____ ");
+        System.out.println("         |  _ \\| __ )");
+        System.out.println("         | | | |  _ \\ ");
+        System.out.println("         | |_| | |_) |");
+        System.out.println("         |____/|____/ ");
         System.out.println();
+        timer();
         System.out.println("1. Carregar base de dados original (TODOS)");
         System.out.println("2. Criar novo registro (CREATE TODOS)");
         System.out.println("3. Busca por ID (READ SEQUENCIAL)");
@@ -444,6 +450,16 @@ public class Anime {
         System.out.println("15. Descompactar (LZW)");
         System.out.println("16. Pesquisa por padrao (BM)");
         System.out.println("17. Sair");
-        System.out.print(">>");
+        System.out.print(">> ");
     }
+
+    private static void timer() {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.err.println("Timer interrompido: " + e.getMessage());
+        }
+    }
+
 }

@@ -112,7 +112,7 @@ public class LZW {
     // Método para compressao real
     public static void compressReal() {
         String comp = "animeDBLZWCompressed.bin";
-        String dictFile = "LZWDictionary.ser"; // .ser é uma extensao comum para arquivos serializados
+        String dictFile = "LZWDictionary.ser";
         Instant start = Instant.now();
         try {
             BufferedReader reader = new BufferedReader(new FileReader("anime.db"));
