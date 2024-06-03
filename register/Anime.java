@@ -433,23 +433,16 @@ public class Anime {
         System.out.println("         |____/|____/ ");
         System.out.println();
         timer();
-        System.out.println("1. Carregar base de dados original (TODOS)");
-        System.out.println("2. Criar novo registro (CREATE TODOS)");
-        System.out.println("3. Busca por ID (READ SEQUENCIAL)");
-        System.out.println("4. Deletar um registro por ID (DELETE TODOS)");
-        System.out.println("5. Update em um registro por ID (UPDATE TODOS)");
-        System.out.println("6. Pesquisa pelo index (HASH ESTENDIDO)");
-        System.out.println("7. Pesquisa pelo index (ARVORE B+)");
-        System.out.println("8. Pesquisa por titulo (LISTA INVERTIDA)");
-        System.out.println("9. Pesquisa por genero (LISTA INVERTIDA)");
-        System.out.println("10. Imprimir (HASH ESTENDIDO)");
-        System.out.println("11. Imprimir (ARVORE B+)");
-        System.out.println("12. Compactar (HUFFMAN)");
-        System.out.println("13. Descompactar (HUFFMAN)");
-        System.out.println("14. Compactar (LZW)");
-        System.out.println("15. Descompactar (LZW)");
-        System.out.println("16. Pesquisa por padrao (BM)");
-        System.out.println("17. Sair");
+        System.out.printf("1. Carregar base de dados original (ALL)       2. Criar novo registro (CREATE ALL)%n");
+        System.out.printf("3. Busca por ID (READ SEQUENCIAL)              4. Deletar um registro por ID (DELETE ALL)%n");
+        System.out.printf("5. Update em um registro por ID (UPDATE ALL)   6. Pesquisa pelo index (HASH ESTENDIDO)%n");
+        System.out.printf("7. Pesquisa pelo index (ARVORE B+)             8. Pesquisa por titulo (LISTA INV)%n");
+        System.out.printf("9. Pesquisa por genero (LISTA INV)             10. Imprimir (HASH ESTENDIDO)%n");
+        System.out.printf("11. Imprimir (ARVORE B+)                       12. Compactar (HUFFMAN)%n");
+        System.out.printf("13. Descompactar (HUFFMAN)                     14. Compactar (LZW)%n");
+        System.out.printf("15. Descompactar (LZW)                         16. Pesquisa por padrao (BM)%n");
+        System.out.printf("17. Sair%n");
+
         System.out.print(">> ");
     }
 

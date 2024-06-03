@@ -61,6 +61,7 @@ public class Main {
             switch (option) {
                 case 1:
                     loadOriginalBase();
+                    System.out.println();
                     break;
                 case 2:
                     addNewRecord();
@@ -112,10 +113,12 @@ public class Main {
                     break;
                 case 17:
                     loop = false;
-                    System.out.println("Adeus...");
+                    System.out.println();
+                    System.out.println("Sayounara...");
                     break;
                 default:
                     loop = false;
+                    System.out.println();
                     System.out.println("Opçao invalida...");
                     break;
             }
@@ -135,6 +138,7 @@ public class Main {
             int lastId = 0;
             long totalLines = Files.lines(Paths.get(TSV_FILE_NAME)).count() - 1; // Total de linhas excluindo header
             long currentLine = 0;
+            System.out.println();
             while ((line = TSVRAF.readLine()) != null) {
                 Anime anime = Anime.fromStringArray(line.split("\t"));
                 addAnimeRecord(anime);
@@ -232,7 +236,7 @@ public class Main {
     }
 
     private void progressBar(long current, long total) {
-        int width = 25; // Tamanho da barra de progresso
+        int width = 50; // Tamanho da barra de progresso
         double progress = (double) current / total;
         int completed = (int) (progress * width);
         StringBuilder sb = new StringBuilder();
@@ -301,7 +305,7 @@ public class Main {
 
             // Verifica se o ID do anime corresponde ao ID procurado
             if (anime.getId() == searchedID) {
-                System.out.print(anime.getTitle() + " -> Id: " + anime.getId() + " -> Score:" + anime.getScore());
+                System.out.println("Id: " + anime.getId() + " | Titulo: " + anime.getTitle() + " | Score: " + anime.getScore());
                 found = true;
                 break; // Sai do loop se o anime for encontrado
             }
@@ -493,7 +497,7 @@ public class Main {
             raf.readFully(recordData);
             Anime anime = new Anime();
             anime.fromByteArray(recordData);
-            System.out.print(anime.getTitle() + " -> Id: " + anime.getId() + " -> Score:" + anime.getScore());
+            System.out.println("Id: " + anime.getId() + " | Titulo: " + anime.getTitle() + " | Score: " + anime.getScore());
         }
     }
 
@@ -542,7 +546,7 @@ public class Main {
 
     private void searchByGenres() throws IOException {
         // Solicita ao usuário os generos que deseja pesquisar
-        System.out.println("Digite os generos que deseja pesquisar):");
+        System.out.println("Digite os generos que deseja pesquisar:");
         System.out.print(">> ");
         String termos = scanner.nextLine();
         String[] generos = termos.split(" ");
@@ -605,7 +609,7 @@ public class Main {
 
     private void displayAnimeList(List<Anime> animeList) {
         for (Anime anime : animeList) {
-            System.out.println(anime.getTitle() + " -> Id: " + anime.getId() + " -> Score: " + anime.getScore());
+            System.out.println("Id: " + anime.getId() + " | Titulo: " + anime.getTitle() + " | Score: " + anime.getScore());
         }
         timer();
     }
