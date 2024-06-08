@@ -441,8 +441,9 @@ public class Anime {
         System.out.printf("11. Imprimir (ARVORE B+)                       12. Compactar (HUFFMAN)%n");
         System.out.printf("13. Descompactar (HUFFMAN)                     14. Compactar (LZW)%n");
         System.out.printf("15. Descompactar (LZW)                         16. Pesquisa por padrao (BM)%n");
-        System.out.printf("17. Sair%n");
-
+        System.out.printf("17. Criptografar (Caesar)                      18. Descriptografar (Caesar)%n");
+        System.out.printf("19. Criptografar (RSA)                          20. Descriptografar (RSA)%n");
+        System.out.printf("21. Sair%n");
         System.out.print(">> ");
     }
 

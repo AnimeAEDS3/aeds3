@@ -1,69 +1,141 @@
 package cryptography;
 
 import java.math.BigInteger;
-import java.security.SecureRandom;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Random;
+import java.io.FileOutputStream;
 
 public class RSA {
-    private BigInteger n; // Produto dos dois números primos p e q
-    private BigInteger d; // Expoente privado
-    private BigInteger e; // Expoente público
-    private int bitlen = 1024; // Tamanho dos números primos
 
-    public RSA(BigInteger newn, BigInteger newe, BigInteger newd) {
-        n = newn;
-        e = newe;
-        d = newd;
+    private BigInteger p;
+    private BigInteger q;
+    private BigInteger N;
+    private BigInteger phi;
+    private BigInteger e;
+    private BigInteger d;
+    private int bitlength = 1024;
+    private int certainty = 10;
+    private Random r;
+
+    public RSA() {
+        r = new Random();
+        p = probablePrime(bitlength, r);
+        q = probablePrime(bitlength, r);
+        N = p.multiply(q);
+        phi = p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE));
+        e = BigInteger.valueOf(65537);
+        d = ExtendedEuclidean.modInverse(e, phi);
     }
 
-    public RSA(int bits) {
-        bitlen = bits;
-        SecureRandom r = new SecureRandom();
-        BigInteger p = new BigInteger(bitlen / 2, 100, r);
-        BigInteger q = new BigInteger(bitlen / 2, 100, r);
-        n = p.multiply(q);
-        BigInteger m = (p.subtract(BigInteger.ONE)).multiply(q.subtract(BigInteger.ONE));
-        e = new BigInteger("3");
+    private BigInteger probablePrime(int bitlength, Random r) {
+        return new BigInteger(bitlength, certainty, r);
+    }
 
-        // Escolhendo e tal que 1 < e < m e gcd(e, m) = 1 (e e m são primos entre si)
-        while (m.gcd(e).intValue() > 1) {
-            e = e.add(new BigInteger("2"));
+    public static void main(String[] args) throws Exception {
+        RSA rsa = new RSA();
+
+        String inputFile = "anime.db";
+        String encryptedFile = "animeDBRSAEncrypted.bin";
+        String decryptedFile = "animeDBRSADecrypted.db";
+
+        // Encrypt the file
+        rsa.encryptFile(inputFile, encryptedFile);
+
+        // Decrypt the file
+        rsa.decryptFile(encryptedFile, decryptedFile);
+
+        // Verify the files
+        rsa.verifyFiles(inputFile, decryptedFile);
+    }
+
+    private void encryptFile(String inputFile, String encryptedFile) throws Exception {
+        byte[] fileBytes = Files.readAllBytes(Paths.get(inputFile));
+        int blockSize = bitlength / 8 - 11; // RSA block size (in bytes)
+        int blockCount = (int) Math.ceil((double) fileBytes.length / blockSize);
+
+        try (FileOutputStream fos = new FileOutputStream(encryptedFile)) {
+            for (int i = 0; i < blockCount; i++) {
+                int start = i * blockSize;
+                int end = Math.min(start + blockSize, fileBytes.length);
+                byte[] block = Arrays.copyOfRange(fileBytes, start, end);
+                byte[] encryptedBlock = encrypt(block, e, N);
+                fos.write(intToByteArray(encryptedBlock.length));
+                fos.write(encryptedBlock);
+            }
         }
-        d = e.modInverse(m);
+
+        System.out.println("File encrypted: " + encryptedFile);
     }
 
-    // Criptografa a mensagem usando a chave pública
-    public synchronized String encrypt(String message) {
-        return (new BigInteger(message.getBytes())).modPow(e, n).toString();
+    private void decryptFile(String encryptedFile, String decryptedFile) throws Exception {
+        byte[] encryptedBytes = Files.readAllBytes(Paths.get(encryptedFile));
+        ArrayList<byte[]> encryptedBlocks = new ArrayList<>();
+
+        int i = 0;
+        while (i < encryptedBytes.length) {
+            int blockLength = byteArrayToInt(Arrays.copyOfRange(encryptedBytes, i, i + 4));
+            i += 4;
+            byte[] block = Arrays.copyOfRange(encryptedBytes, i, i + blockLength);
+            encryptedBlocks.add(block);
+            i += blockLength;
+        }
+
+        try (FileOutputStream fos = new FileOutputStream(decryptedFile)) {
+            for (int j = 0; j < encryptedBlocks.size(); j++) {
+                byte[] decryptedBlock = decrypt(encryptedBlocks.get(j), d, N);
+                // For the last block, ensure we remove any padding if present
+                if (j == encryptedBlocks.size() - 1) {
+                    int paddingIndex = decryptedBlock.length;
+                    for (int k = decryptedBlock.length - 1; k >= 0; k--) {
+                        if (decryptedBlock[k] != 0) {
+                            paddingIndex = k + 1;
+                            break;
+                        }
+                    }
+                    decryptedBlock = Arrays.copyOf(decryptedBlock, paddingIndex);
+                }
+                fos.write(decryptedBlock);
+            }
+        }
+
+        System.out.println("File decrypted: " + decryptedFile);
     }
 
-    // Descriptografa a mensagem usando a chave privada
-    public synchronized String decrypt(String message) {
-        return new String((new BigInteger(message)).modPow(d, n).toByteArray());
+    private void verifyFiles(String originalFile, String decryptedFile) throws Exception {
+        byte[] originalBytes = Files.readAllBytes(Paths.get(originalFile));
+        byte[] decryptedBytes = Files.readAllBytes(Paths.get(decryptedFile));
+
+        if (Arrays.equals(originalBytes, decryptedBytes)) {
+            System.out.println("Verification successful: Files are identical.");
+        } else {
+            System.out.println("Verification failed: Files are not identical.");
+        }
     }
 
-    // Métodos para obter a chave pública e privada
-    public synchronized BigInteger getPublicKey() {
-        return e;
+    private byte[] encrypt(byte[] message, BigInteger e, BigInteger N) {
+        return (new BigInteger(1, message)).modPow(e, N).toByteArray();
     }
 
-    public synchronized BigInteger getPrivateKey() {
-        return d;
+    private byte[] decrypt(byte[] message, BigInteger d, BigInteger N) {
+        return (new BigInteger(1, message)).modPow(d, N).toByteArray();
     }
 
-    public synchronized BigInteger getModulus() {
-        return n;
+    private static byte[] intToByteArray(int value) {
+        return new byte[] {
+            (byte)(value >> 24),
+            (byte)(value >> 16),
+            (byte)(value >> 8),
+            (byte)value
+        };
     }
 
-    public static void main(String[] args) {
-        RSA rsa = new RSA(1024);
-
-        String text1 = "Texto a ser criptografado";
-        System.out.println("Texto original: " + text1);
-
-        String encrypted = rsa.encrypt(text1);
-        System.out.println("Texto criptografado: " + encrypted);
-
-        String decrypted = rsa.decrypt(encrypted);
-        System.out.println("Texto descriptografado: " + decrypted);
+    private static int byteArrayToInt(byte[] bytes) {
+        return ((bytes[0] & 0xFF) << 24) |
+               ((bytes[1] & 0xFF) << 16) |
+               ((bytes[2] & 0xFF) << 8) |
+               (bytes[3] & 0xFF);
     }
 }

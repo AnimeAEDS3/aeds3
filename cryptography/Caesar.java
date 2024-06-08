@@ -48,15 +48,10 @@ public class Caesar {
             // Write encrypted bytes to file
             Files.write(Paths.get(comp), encryptedBytes);
     
-            long originalSize = new File("anime.db").length();
-            long encryptedSize = new File(comp).length();
-    
             Instant end = Instant.now();
             Duration timeElapsed = Duration.between(start, end);
     
             System.out.println("Criptografia completada em: " + timeElapsed.toMillis() + " ms");
-            System.out.println("Tamanho original: " + originalSize + " bytes");
-            System.out.println("Tamanho criptografado: " + encryptedSize + " bytes");
     
         } catch (IOException e) {
             e.printStackTrace();
