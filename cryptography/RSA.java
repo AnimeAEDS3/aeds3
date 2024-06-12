@@ -1,46 +1,63 @@
 package cryptography;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.math.BigInteger;
 
 public class RSA {
 
-    private static long p = 32452843; // Número primo com 8 dígitos decimais
-    private static long q = 32452867; // Outro número primo com 8 dígitos decimais
+    private static BigInteger p = new BigInteger("104729"); // Número primo
+    private static BigInteger q = new BigInteger("1299709"); // Outro número primo
 
     // Calcula n e φ(n)
-    private static long n = p * q;
-    private static long phi = (p - 1) * (q - 1);
+    private static BigInteger n = p.multiply(q);
+    private static BigInteger phi = (p.subtract(BigInteger.ONE)).multiply(q.subtract(BigInteger.ONE));
 
     // Define o expoente público e calcula a chave privada d
-    private static long e = 65537; // Comum usar 65537 como expoente público
-    private static long d = modinv(e, phi);
+    private static BigInteger e = new BigInteger("65537"); // Usando 65537 como expoente público
+    private static BigInteger d = e.modInverse(phi);
+
+    public static void main(String[] args) throws IOException {
+
+        // Exibe as chaves públicas e privadas
+        System.out.println("Chave pública (e, n): (" + e + ", " + n + ")");
+        System.out.println("Chave privada (d, n): (" + d + ", " + n + ")");
+
+        // Caminhos dos arquivos de entrada e saída
+        String inputFilePath = "anime.db";
+        String encryptedFilePath = "RSAencrypted_anime.db";
+        String decryptedFilePath = "RSAdecrypted_anime.db";
+
+        // Realiza a criptografia e descriptografia dos arquivos
+        encryptFile(inputFilePath, encryptedFilePath);
+        decryptFile(encryptedFilePath, decryptedFilePath);
+    }
 
     // Método para criptografar um arquivo
     public static void encryptFile(String inputFilePath, String outputFilePath) throws IOException {
-        try (InputStream inputStream = Files.newInputStream(Paths.get(inputFilePath));
-             OutputStream outputStream = Files.newOutputStream(Paths.get(outputFilePath))) {
+        try (InputStream inputStream = new FileInputStream(inputFilePath);
+             DataOutputStream outputStream = new DataOutputStream(new FileOutputStream(outputFilePath))) {
 
             int character;
             long totalCharacters = 0;
             long startTime = System.currentTimeMillis();
 
             // Calcula o tamanho total do arquivo para mostrar o progresso
-            long totalBytes = Files.size(Paths.get(inputFilePath));
+            long totalBytes = new File(inputFilePath).length();
             long processedBytes = 0;
             char[] loadingAnim = {'-', '\\', '|', '/'};
             int animIndex = 0;
 
-            // Lê cada caractere do arquivo de entrada
+            // Lê cada byte do arquivo de entrada
             while ((character = inputStream.read()) != -1) {
-                long plaintext = character;
-                long ciphertext = powmod_verbose(plaintext, e, n);
-                outputStream.write(longToBytes(ciphertext));
+                BigInteger plaintext = BigInteger.valueOf(character);
+                BigInteger ciphertext = plaintext.modPow(e, n);
+                byte[] ciphertextBytes = ciphertext.toByteArray();
+                outputStream.writeInt(ciphertextBytes.length); // Escreve o tamanho do valor criptografado
+                outputStream.write(ciphertextBytes); // Escreve o valor criptografado como bytes
                 totalCharacters++;
                 processedBytes++;
 
-                // Exibe a animação de carregamento e a porcentagem
+                // Atualiza o progresso na mesma linha
                 if (processedBytes % 100 == 0) {
                     double progress = (double) processedBytes / totalBytes * 100;
                     System.out.print("\rCriptografando: " + loadingAnim[animIndex % 4] + " " + String.format("%.2f", progress) + "%");
@@ -57,29 +74,30 @@ public class RSA {
 
     // Método para descriptografar um arquivo
     public static void decryptFile(String inputFilePath, String outputFilePath) throws IOException {
-        try (InputStream inputStream = Files.newInputStream(Paths.get(inputFilePath));
-             OutputStream outputStream = Files.newOutputStream(Paths.get(outputFilePath))) {
+        try (DataInputStream inputStream = new DataInputStream(new FileInputStream(inputFilePath));
+             OutputStream outputStream = new FileOutputStream(outputFilePath)) {
 
-            byte[] buffer = new byte[8];
-            int bytesRead;
             long totalCharacters = 0;
             long startTime = System.currentTimeMillis();
 
             // Calcula o tamanho total do arquivo para mostrar o progresso
-            long totalBytes = Files.size(Paths.get(inputFilePath));
+            long totalBytes = new File(inputFilePath).length();
             long processedBytes = 0;
             char[] loadingAnim = {'-', '\\', '|', '/'};
             int animIndex = 0;
 
-            // Lê cada bloco de 8 bytes do arquivo criptografado
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                long ciphertext = bytesToLong(buffer);
-                long decrypted = powmod_verbose(ciphertext, d, n);
-                outputStream.write((int) decrypted);
+            // Lê cada valor criptografado do arquivo de entrada
+            while (inputStream.available() > 0) {
+                int length = inputStream.readInt(); // Lê o tamanho do valor criptografado
+                byte[] ciphertextBytes = new byte[length];
+                inputStream.readFully(ciphertextBytes); // Lê o valor criptografado
+                BigInteger ciphertext = new BigInteger(ciphertextBytes);
+                BigInteger decrypted = ciphertext.modPow(d, n);
+                outputStream.write(decrypted.intValue()); // Escreve o valor descriptografado como byte
                 totalCharacters++;
-                processedBytes += bytesRead;
+                processedBytes += length + 4; // Adiciona o tamanho do valor criptografado mais 4 bytes para o comprimento
 
-                // Exibe a animação de carregamento e a porcentagem
+                // Atualiza o progresso na mesma linha
                 if (processedBytes % 100 == 0) {
                     double progress = (double) processedBytes / totalBytes * 100;
                     System.out.print("\rDescriptografando: " + loadingAnim[animIndex % 4] + " " + String.format("%.2f", progress) + "%");
@@ -92,66 +110,5 @@ public class RSA {
             System.out.println("Total de caracteres descriptografados: " + totalCharacters);
             System.out.println("Tempo total: " + (endTime - startTime) + " ms");
         }
-    }
-
-    // Método para calcular a exponenciação modular
-    public static long powmod_verbose(long base, long exponent, long modulus) {
-        long result = 1;
-        base = base % modulus;
-
-        while (exponent > 0) {
-            if ((exponent & 1) == 1) {
-                result = (result * base) % modulus;
-            }
-            exponent = exponent >> 1;
-            base = (base * base) % modulus;
-        }
-
-        return result;
-    }
-
-    // Método para calcular o inverso modular
-    public static long modinv(long a, long m) {
-        long m0 = m;
-        long y = 0, x = 1;
-
-        if (m == 1)
-            return 0;
-
-        while (a > 1) {
-            long q = a / m;
-            long t = m;
-
-            m = a % m;
-            a = t;
-            t = y;
-
-            y = x - q * y;
-            x = t;
-        }
-
-        if (x < 0)
-            x += m0;
-
-        return x;
-    }
-
-    // Método para converter um array de bytes em um número long
-    public static long bytesToLong(byte[] bytes) {
-        long value = 0;
-        for (int i = 0; i < bytes.length; i++) {
-            value = (value << 8) + (bytes[i] & 0xff);
-        }
-        return value;
-    }
-
-    // Método para converter um número long em um array de bytes
-    public static byte[] longToBytes(long value) {
-        byte[] result = new byte[8];
-        for (int i = 7; i >= 0; i--) {
-            result[i] = (byte) (value & 0xff);
-            value >>= 8;
-        }
-        return result;
     }
 }
