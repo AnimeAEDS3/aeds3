@@ -2,6 +2,7 @@ import datastructures.*;
 import pattern_searching.BoyerMoore;
 import register.*;
 import compression.*;
+import cryptography.*;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
@@ -112,6 +113,14 @@ public class Main {
                     timer();
                     break;
                 case 17:
+                    RSA.encryptFile("anime.db","RSAencrypted_anime.db");
+                    timer();
+                    break;
+                case 18:
+                    RSA.decryptFile("RSAencrypted_anime.db","RSAdecrypted_anime.db");
+                    timer();
+                    break;
+                case 19:
                     loop = false;
                     System.out.println();
                     System.out.println("Sayounara...");
@@ -305,7 +314,8 @@ public class Main {
 
             // Verifica se o ID do anime corresponde ao ID procurado
             if (anime.getId() == searchedID) {
-                System.out.println("Id: " + anime.getId() + " | Titulo: " + anime.getTitle() + " | Score: " + anime.getScore());
+                System.out.println(
+                        "Id: " + anime.getId() + " | Titulo: " + anime.getTitle() + " | Score: " + anime.getScore());
                 found = true;
                 break; // Sai do loop se o anime for encontrado
             }
@@ -497,7 +507,8 @@ public class Main {
             raf.readFully(recordData);
             Anime anime = new Anime();
             anime.fromByteArray(recordData);
-            System.out.println("Id: " + anime.getId() + " | Titulo: " + anime.getTitle() + " | Score: " + anime.getScore());
+            System.out.println(
+                    "Id: " + anime.getId() + " | Titulo: " + anime.getTitle() + " | Score: " + anime.getScore());
         }
     }
 
@@ -609,7 +620,8 @@ public class Main {
 
     private void displayAnimeList(List<Anime> animeList) {
         for (Anime anime : animeList) {
-            System.out.println("Id: " + anime.getId() + " | Titulo: " + anime.getTitle() + " | Score: " + anime.getScore());
+            System.out.println(
+                    "Id: " + anime.getId() + " | Titulo: " + anime.getTitle() + " | Score: " + anime.getScore());
         }
         timer();
     }
